@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1f4e8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="10K 로그">
+<title>10K 훈련 로그</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface-2: #f4f5f7;
+    --border: #e4e6ea;
+    --border-strong: #d0d3d8;
+    --text: #1a1d21;
+    --text-muted: #5a6068;
+    --text-soft: #8a8f96;
+    --accent: #1f4e8a;
+    --base: #5B9BD5;
+    --build: #70AD47;
+    --peak: #ED7D31;
+    --taper: #A5A5A5;
+    --race: #C00000;
+    --ok: #2e7d32;
+    --bad: #c0392b;
+    --today: #1f4e8a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 0 14px calc(40px + env(safe-area-inset-bottom)); }
+
+  /* Sticky summary bar */
+  header.bar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--accent);
+    color: #fff;
+    margin: 0 -14px 14px;
+    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  }
+  .bar .top-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .bar .title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .bar .dday { font-size: 13px; opacity: 0.92; font-weight: 600; }
+  .bar .wk { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+  .prog-wrap { margin-top: 9px; }
+  .prog-track { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.25); overflow: hidden; }
+  .prog-fill { height: 100%; background: #ffd166; border-radius: 4px; transition: width 0.3s; }
+  .prog-label { font-size: 11px; opacity: 0.9; margin-top: 4px; display: flex; justify-content: space-between; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .btn {
+    flex: 1 1 auto; min-width: 0;
+    appearance: none; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text);
+    border-radius: 9px; padding: 9px 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn:active { background: var(--surface-2); }
+  .btn.danger { color: var(--bad); border-color: #e8b3b3; }
+
+  /* Week section */
+  .week { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+  .week.collapsed .week-body { display: none; }
+  .week-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; cursor: pointer; user-select: none;
+    background: var(--surface);
+  }
+  .week.open > .week-head { background: var(--surface-2); }
+  .wbadge { color: #fff; font-weight: 700; font-size: 12px; padding: 3px 9px; border-radius: 6px; white-space: nowrap; }
+  .whead-main { flex: 1; min-width: 0; }
+  .whead-main .wrange { font-size: 14px; font-weight: 600; }
+  .whead-main .wfocus { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .wkm { font-size: 11px; color: var(--text-muted); background: var(--surface-2); border: 1px solid var(--border); padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+  .wchev { color: var(--text-soft); font-size: 13px; transition: transform 0.2s; }
+  .week.open .wchev { transform: rotate(180deg); }
+  .wmini { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
+
+  .week-body { padding: 4px 12px 12px; }
+
+  /* Futsal toggle row */
+  .ftoggle {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff4e6; border: 1px solid #f5c890; border-radius: 8px;
+    padding: 8px 10px; margin: 6px 0 10px; font-size: 13px; color: #a04a00;
+  }
+  .ftoggle .lab { font-weight: 600; }
+  .seg-btns { display: inline-flex; border: 1px solid #e0a766; border-radius: 7px; overflow: hidden; margin-left: auto; }
+  .seg-btns button {
+    appearance: none; border: none; background: #fff; color: #a04a00;
+    padding: 5px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .seg-btns button.active { background: #ED7D31; color: #fff; }
+
+  /* Day card */
+  .day {
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; overflow: hidden;
+    background: var(--surface);
+  }
+  .day.today { border-color: var(--today); box-shadow: 0 0 0 2px rgba(31,78,138,0.18); }
+  .day.rest { background: #fcfcfd; }
+  .day-head {
+    display: flex; align-items: center; gap: 9px; padding: 9px 11px;
+    cursor: pointer; user-select: none;
+  }
+  .ddate { font-size: 13px; font-weight: 700; min-width: 52px; }
+  .ddate .dow { color: var(--text-soft); font-weight: 600; margin-left: 1px; }
+  .today-pin { background: var(--today); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: 600; border: 1px solid var(--border-strong); background: var(--surface-2); }
+  .tag.easy { background:#eaf3fb; border-color:#b8d0e8; color:#2256a0; }
+  .tag.long { background:#eef6e7; border-color:#c4dfa8; color:#3d6b1b; }
+  .tag.tempo { background:#fbf0e6; border-color:#f0b07a; color:#984500; }
+  .tag.interval { background:#fbe6e6; border-color:#e8a4a4; color:#8b1e1e; }
+  .tag.futsal { background:#fff4e6; border-color:#f5c890; color:#a04a00; }
+  .tag.race { background:#c00000; border-color:#c00000; color:#fff; }
+  .tag.rest { background:#eef0f2; border-color:#d0d3d8; color:#5a6068; }
+  .dsummary { flex: 1; min-width: 0; font-size: 13px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dcheck { font-size: 16px; color: var(--text-soft); }
+  .dcheck.done { color: var(--ok); }
+  .dchev { color: var(--text-soft); font-size: 12px; }
+
+  .day-body { display: none; padding: 0 11px 12px; }
+  .day.expanded .day-body { display: block; }
+  .day.expanded .dchev { transform: rotate(180deg); }
+
+  .plan-box {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 11px; margin-bottom: 11px; font-size: 13px;
+  }
+  .plan-box .pl-line { display: flex; gap: 8px; margin-bottom: 3px; }
+  .plan-box .pl-k { color: var(--text-soft); min-width: 44px; flex-shrink: 0; }
+  .plan-box .pl-v { color: var(--text); font-weight: 600; }
+  .plan-box .pl-desc { color: var(--text-muted); font-weight: 400; margin-top: 5px; font-size: 12.5px; line-height: 1.5; }
+
+  .field { margin-bottom: 11px; }
+  .field > label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 5px; }
+  .checks { display: flex; gap: 7px; }
+  .chk {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+    border: 1px solid var(--border-strong); border-radius: 8px; padding: 9px 4px;
+    font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: var(--text-muted);
+  }
+  .chk.on { background: #eaf6ec; border-color: #9ccfa3; color: var(--ok); }
+  .chk .box { width: 16px; height: 16px; border: 2px solid currentColor; border-radius: 4px; display: inline-flex; align-items:center; justify-content:center; font-size: 11px; }
+
+  .row2 { display: flex; gap: 9px; }
+  .row2 .field { flex: 1; }
+  input[type="text"], input[type="number"], textarea {
+    width: 100%; appearance: none;
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    padding: 10px 11px; font-size: 16px; font-family: inherit; color: var(--text);
+    background: #fff;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 44px; line-height: 1.5; }
+  .diff { font-size: 12px; font-weight: 700; margin-top: 5px; }
+  .diff.over { color: var(--bad); }
+  .diff.under { color: var(--bad); }
+  .diff.match { color: var(--ok); }
+  .diff .plan-ref { color: var(--text-soft); font-weight: 500; }
+
+  /* segmented sliders */
+  .scale { display: flex; gap: 5px; }
+  .scale button {
+    flex: 1; appearance: none; border: 1px solid var(--border-strong); background: #fff;
+    color: var(--text-muted); border-radius: 7px; padding: 9px 0; font-size: 14px; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+  }
+  .scale.cond button.sel { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .scale.rpe button.sel { background: var(--peak); border-color: var(--peak); color: #fff; }
+  .scale-hint { font-size: 11px; color: var(--text-soft); margin-top: 4px; display: flex; justify-content: space-between; }
+  .rpe10 .scale button { font-size: 12.5px; padding: 8px 0; }
+
+  .supp-note { font-size: 12px; color: var(--text-muted); background: #f9f6ef; border: 1px solid #ece2cf; border-radius: 7px; padding: 8px 10px; margin-bottom: 11px; }
+
+  footer { text-align: center; color: var(--text-soft); font-size: 11px; margin-top: 18px; line-height: 1.7; }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+    background: #1a1d21; color: #fff; padding: 10px 18px; border-radius: 10px; font-size: 13px;
+    opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 100; max-width: 88%;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <div class="top-row">
+      <div class="title">10K · 5:15/km 훈련 로그</div>
+      <div class="dday" id="dday">D-—</div>
+    </div>
+    <div class="wk" id="wkline">—</div>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      <div class="prog-label"><span id="progText">완료 0 / 45 세션</span><span id="progPct">0%</span></div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <button class="btn" id="btnToday">오늘로</button>
+    <button class="btn" id="btnExport">백업 내보내기</button>
+    <button class="btn" id="btnImport">가져오기</button>
+    <button class="btn danger" id="btnReset">초기화</button>
+  </div>
+
+  <div id="weeks"></div>
+
+  <footer>
+    데이터는 이 브라우저(localStorage)에만 저장됩니다 · 인터넷 없어도 동작<br>
+    레이스 2026-09-12 (토) · 목표 52:30 · <a href="plan.html">전체 커리큘럼 보기</a>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" accept="application/json" style="display:none">
+
+<script>
+"use strict";
+
+/* ---------- 데이터: 15주 커리큘럼 ---------- */
+// 각 주: start(월요일), mon(월 러닝), sat(토 메인), futsal(풋살 안내), note
+// pace 비교가 가능한 단순 세션만 planPaceSec 지정. 복합 세션은 null.
+const WEEKS = [
+  { n:1, phase:'Base', color:'#5B9BD5', start:'2026-06-01', focus:'루틴 정착 + 베이스 빌딩', km:18,
+    mon:{tag:'easy', label:'Easy 러닝', dist:5, paceTxt:'6:30/km · 약 32분', paceSec:390, desc:'대화 가능한 강도, 코호흡 유지. 페이스 신경쓰지 말고 시간 채우기.'},
+    sat:{tag:'long', label:'Long Easy', dist:8, paceTxt:'6:20/km · 약 51분', paceSec:380, desc:'현재 5km 베이스에서 +60% 거리. 마지막 1km 페이스 약간 줄이며 마무리.'},
+    futsal:'풋살 자체가 인터벌 자극. 시합 후 단백질 + 탄수화물 보충.',
+    note:'첫 주는 페이스보다 루틴 정착이 우선. 풋살 다음 날 근육통 심하면 월요일 Easy를 화요일로. 신발·양말·루트 점검.' },
+  { n:2, phase:'Base', color:'#5B9BD5', start:'2026-06-08', focus:'주간 거리 점진 증가', km:20,
+    mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'지난주보다 1km 추가. 호흡이 가빠지면 속도 늦추기.'},
+    sat:{tag:'long', label:'Long Easy', dist:9, paceTxt:'6:20/km · 약 57분', paceSec:380, desc:'거리 1km 증가. 7km 이후 페이스 무너지면 마지막 2km는 6:30으로.'},
+    futsal:'풋살 전 5분 동적 스트레칭. 햄스트링·종아리 풀고 들어가기.',
+    note:'세종 6월 중순 25도 전후. 토요일 장거리는 오전 7시 이전 출발 권장. 수분 200ml 미리.' },
+  { n:3, phase:'Base', color:'#5B9BD5', start:'2026-06-15', focus:'유산소 베이스 강화', km:22,
+    mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:20/km · 약 44분', paceSec:380, desc:'꾸준한 페이스 유지. 마지막 500m 가볍게 빌드업.'},
+    sat:{tag:'long', label:'Long + Strides', dist:10, paceTxt:'6:15/km · 약 63분', paceSec:375, desc:'10km 첫 진입. 종료 후 100m 스트라이드 4회(90% 노력).'},
+    futsal:'전반 컨디션 체크, 후반 강도 올리기. 끝나고 10분 정적 스트레칭.',
+    note:'처음 10km 진입 주차. 무릎·발목 통증 신호에 민감하게. 일요일은 무조건 완전 휴식.' },
+  { n:4, phase:'Base', color:'#5B9BD5', start:'2026-06-22', focus:'베이스 다지기 (소폭 컷백)', km:19,
+    mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'회복 위주. 다리 무거우면 5km로 줄여도 됨.'},
+    sat:{tag:'long', label:'Long Easy', dist:9, paceTxt:'6:15/km · 약 56분', paceSec:375, desc:'지난주 대비 1km 감소. 페이스 약간 끌어올려 균형 잡기.'},
+    futsal:'평소대로 진행. 부상 신호 없는지 발목·무릎 점검.',
+    note:'Base 마지막 주. 다음 주부터 강도 진입. 컨디션 좋으면 토요일 마지막 2km를 5:50으로 빌드업 가능.' },
+  { n:5, phase:'Build', color:'#70AD47', start:'2026-06-29', focus:'강도 도입 준비 — M 페이스 첫 경험', km:23,
+    mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'회복 페이스 엄격히 지키기. 풋살 후 다리 상태 점검.'},
+    sat:{tag:'tempo', label:'Long + M-pace', dist:12, paceTxt:'6:15 → 마지막 3km @ 5:30/km · 약 73분', paceSec:null, desc:'9km Easy 후 마지막 3km를 마라톤 페이스(5:30)로 마무리. 첫 페이스 변환 훈련.'},
+    futsal:'토요일 마라톤 페이스 구간 위해 무리한 전력질주는 줄이기.',
+    note:'Build 진입. 장마 시작 가능 — 비 오면 우비 입고 진행, 천둥/번개는 강행 금지. 토요일 새벽 6시 출발 권장.' },
+  { n:6, phase:'Build', color:'#70AD47', start:'2026-07-06', focus:'Tempo 첫 도입', km:24,
+    mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'수/목 풋살 전 가볍게 다리 풀기.'},
+    sat:{tag:'tempo', label:'Tempo', dist:12, paceTxt:'WU 3km + 3km @ 5:30 + 3km Easy + 3km CD · 약 75분', paceSec:null, desc:'첫 템포 세션. 5:30 구간은 약간 숨찬 정도(말 한 문장 가능). 종료 후 워밍다운 필수.'},
+    futsal:'토요일 템포 대비 풋살 마지막 10분은 강도 낮추기.',
+    note:'폭염 주의. 페이스 +15초/km 허용, 강도보다 시간·거리 유지 우선. 토요일 새벽 5시 30분 출발 고려. 전해질 음료 준비.' },
+  { n:7, phase:'Build', color:'#70AD47', start:'2026-07-13', focus:'인터벌 첫 도입', km:25,
+    mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'회복 모드. 토요일 인터벌 위해 다리 비축.'},
+    sat:{tag:'interval', label:'Intervals', dist:13, paceTxt:'WU 3km + 4×800m @ 4:45 (R 2분 jog) + CD 3km · 약 78분', paceSec:null, desc:'첫 인터벌. 4세트 모두 4:45 균일하게. 마지막 세트가 더 빠르면 안 됨(페이스 감각 훈련).'},
+    futsal:'수요일이면 좋음(토요일까지 회복 확보). 목요일이면 토요일 인터벌 전 발목·종아리 상태 체크.',
+    note:'폭염 주의. 페이스 +15초/km 허용. 인터벌은 트랙 또는 평탄한 자전거도로 추천. 어지러움·메스꺼움 즉시 중단.' },
+  { n:8, phase:'Build', color:'#70AD47', start:'2026-07-20', focus:'Tempo 거리 증가', km:27,
+    mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'주간 최장 Easy. 폭염이면 60분 시간 우선으로.'},
+    sat:{tag:'tempo', label:'Split Tempo', dist:14, paceTxt:'WU 3km + 4km @ 5:25 + 2km Easy + 2km @ 5:25 + CD 3km · 약 87분', paceSec:null, desc:'분할 템포. 두 구간 모두 5:25 유지. 첫 구간 후 2km Easy로 호흡 회복 뒤 두 번째 구간.'},
+    futsal:'수분 보충 평소의 1.5배. 풋살장 도착 1시간 전부터 500ml 이상.',
+    note:'폭염 절정. 7월 말 세종 한낮 35도 가능 — 토요일 무조건 새벽. 수면 7시간 이상 사수.' },
+  { n:9, phase:'Build (컷백)', color:'#70AD47', start:'2026-07-27', focus:'컷백 주 — 회복 우선', km:20,
+    mon:{tag:'easy', label:'Easy 러닝', dist:5, paceTxt:'6:20/km · 약 32분', paceSec:380, desc:'짧게 회복. 다리 무겁다 싶으면 휴식으로 전환.'},
+    sat:{tag:'long', label:'Long Easy', dist:10, paceTxt:'6:20/km · 약 63분', paceSec:380, desc:'강도 없이 시간 채우기. 페이스보다 폼·호흡 점검에 집중.'},
+    futsal:'강도 70%로. 컷백 주의 의도(회복)를 살리기.',
+    note:'컷백 주. 약 25% 볼륨 감소. 누적 피로 털고 Peak 진입 준비. 잠·영양·마사지로 회복 극대화.' },
+  { n:10, phase:'Peak', color:'#ED7D31', start:'2026-08-03', focus:'Race Pace 첫 도입', km:26,
+    mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'회복 페이스. 토요일 RP 세션 대비.'},
+    sat:{tag:'tempo', label:'Race Pace', dist:14, paceTxt:'WU 3km + 5km @ 5:15 + 3km Easy + CD 3km · 약 85분', paceSec:null, desc:'목표 페이스 5:15 첫 체험. 5km 완주 후 호흡·다리 상태 기록. 무리해서 더 빠르게 X.'},
+    futsal:'토요일 RP까지 48시간 이상 확보가 이상적.',
+    note:'Peak 진입. 5:15가 어떻게 느껴지는지 몸으로 익히는 주차. 끝나고 회복 식사·낮잠. 폭염 시 +15초/km 허용.' },
+  { n:11, phase:'Peak', color:'#ED7D31', start:'2026-08-10', focus:'Threshold 거리 증가', km:28,
+    mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'주간 가장 긴 Easy. 폼 점검(케이던스 175-180 목표).'},
+    sat:{tag:'tempo', label:'Threshold', dist:15, paceTxt:'WU 3km + 5km @ 5:05 + 4km Easy + CD 3km · 약 90분', paceSec:null, desc:'5km Threshold 1회. 5:05는 1시간 유지 가능 강도(말 짧게만). 끝까지 페이스 균일하게.'},
+    futsal:'평소대로. 발목 테이핑 권장.',
+    note:'열대야 대응. 수면 질 떨어질 수 있음. 침실 26도 유지. 폭염 시 +15초/km 허용.' },
+  { n:12, phase:'Peak', color:'#ED7D31', start:'2026-08-17', focus:'Interval 강화 — 5km 효율 향상', km:29,
+    mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'수/목 풋살 + 토요일 인터벌 사이 회복 균형.'},
+    sat:{tag:'interval', label:'Intervals', dist:14, paceTxt:'WU 3km + 5×1km @ 4:40 (R 90초 jog) + CD 3km · 약 80분', paceSec:null, desc:'Peak 인터벌 핵심. 5세트 모두 4:40 균일 — 첫 2세트 빠르면 마지막 무너짐. 휴식 90초 jog 엄수.'},
+    futsal:'수요일 권장. 토요일 인터벌이 핵심이라 회복 길수록 유리.',
+    note:'핵심 주차. 이번 인터벌 잘 해내면 5:15 충분히 가능. 끝나고 단백질 30g + 탄수 60g 30분 이내 섭취.' },
+  { n:13, phase:'Peak', color:'#ED7D31', start:'2026-08-24', focus:'최고 볼륨 주 — 레이스 시뮬레이션', km:30,
+    mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'마지막 고볼륨 Easy. 다리 상태 매일 모니터링.'},
+    sat:{tag:'race', label:'Race Sim', dist:13, paceTxt:'WU 2km + 8km @ 5:15 + CD 3km · 약 75분', paceSec:null, desc:'마지막 하드 세션. 8km @ 5:15 — 레이스 80% 시뮬. 페이스 균일, 마지막 1km 약간 빌드업 시도.'},
+    futsal:'수요일 권장. 토요일 시뮬레이션 위해 무릎·발목 무리 X.',
+    note:'피크 마지막. 8km @ 5:15 잘 나오면 본 레이스 52:30 완성. 다음 주부터 테이퍼 — 강도/볼륨 더 늘리지 않기.' },
+  { n:14, phase:'Taper', color:'#A5A5A5', start:'2026-08-31', focus:'볼륨 40% 감소 — 강도는 유지', km:18,
+    mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'짧고 가볍게. 다리에 신선함 채우기.'},
+    sat:{tag:'tempo', label:'Short Tempo', dist:8, paceTxt:'WU 2km + 3km @ 5:15 + CD 3km · 약 48분', paceSec:null, desc:'짧지만 날카로운 세션. 3km @ 5:15로 레이스 페이스 감각 유지. 끝나고 다리 여유 있어야 정상.'},
+    futsal:'강도↓. 기술 위주, 전력질주 자제. 슬라이딩·태클 절대 금지. 부상 위험 최소화.',
+    note:'테이퍼 슬럼프 주의. 다리 무겁고 페이스 안 나올 수 있음 — 정상. 다음 주에 풀림. 새 음식·신발·루트 시도 금지.' },
+  { n:15, phase:'Race Week', color:'#C00000', start:'2026-09-07', focus:'레이스 주 — 컨디션 정점 맞추기', km:12,
+    mon:{tag:'easy', label:'Easy 러닝', dist:5, paceTxt:'6:20/km · 약 30분', paceSec:380, desc:'짧게 다리 풀기. 호흡·다리 가벼우면 좋은 신호.'},
+    sat:{tag:'race', label:'RACE 10K', dist:10, paceTxt:'5:15/km · 목표 52:30', paceSec:315, desc:'레이스 당일. WU 15분 + 스트라이드 2회. 첫 1km 절대 오버페이스 X. 5km부터 페이스 평가, 마지막 2km 가능하면 빌드업.'},
+    futsal:null, // 레이스 주 풋살 SKIP
+    // W15 수요일은 풋살 대신 러닝
+    wed:{tag:'easy', label:'Easy + Strides', dist:4, paceTxt:'6:15/km + 4×100m strides · 약 25분', paceSec:375, desc:'20분 Easy 후 100m 스트라이드 4회. 풋살 이번 주 SKIP 권장 또는 기술만 30분 가볍게.', counts:true},
+    note:'레이스 주. 풋살 SKIP 권장(부상 리스크 0%). 금요일 카보 로딩(+50% 탄수), 알코올·매운 음식 금지. 전날 7시간+ 수면. 신발·복장은 익숙한 것으로.' },
+];
+
+const RACE_DATE = '2026-09-12';
+const DOW = ['월','화','수','목','금','토','일'];
+const STORE_KEY = 'runlog10k_v1';
+
+/* ---------- 상태 ---------- */
+let state = load();
+function load(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {days:{}, futsal:{}}; }
+  catch(e){ return {days:{}, futsal:{}}; }
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function dayState(id){ if(!state.days[id]) state.days[id]={}; return state.days[id]; }
+function futsalDay(wn){ return state.futsal[wn] || '수'; }
+
+/* ---------- 날짜 유틸 ---------- */
+function parseD(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y, m-1, d); }
+function fmtId(dt){ const y=dt.getFullYear(), m=String(dt.getMonth()+1).padStart(2,'0'), d=String(dt.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; }
+function addDays(dt,n){ const x=new Date(dt); x.setDate(x.getDate()+n); return x; }
+function todayId(){ const n=new Date(); return fmtId(new Date(n.getFullYear(), n.getMonth(), n.getDate())); }
+function mdLabel(dt){ return `${dt.getMonth()+1}/${dt.getDate()}`; }
+function daysBetween(aId,bId){ return Math.round((parseD(bId)-parseD(aId))/86400000); }
+
+/* ---------- 모델 구성: 105일 ---------- */
+// 각 day: {id, dt, dow, wn, phase, color, kind, session?, counts}
+// kind: 'run' | 'futsal' | 'race' | 'rest' | 'restSupp'
+function buildDays(){
+  const days = [];
+  for(const w of WEEKS){
+    const start = parseD(w.start);
+    const fday = futsalDay(w.n); // '수' or '목'
+    for(let i=0;i<7;i++){
+      const dt = addDays(start, i);
+      const dow = i; // 0=월..6=일
+      const base = { id:fmtId(dt), dt, dow, wn:w.n, phase:w.phase, color:w.color };
+      if(dow===0){ // 월: 러닝
+        days.push({...base, kind:'run', counts:true, session:{...w.mon}});
+      } else if(dow===5){ // 토: 메인
+        const isRace = w.sat.tag==='race' && w.n===15;
+        days.push({...base, kind:isRace?'race':'run', counts:true, session:{...w.sat}});
+      } else if(dow===6){ // 일: 완전 휴식
+        days.push({...base, kind:'rest', counts:false, session:{label:'완전 휴식', desc:'가벼운 산책만 허용. 다음 주 대비 회복.'}});
+      } else if(dow===2 || dow===3){ // 수/목
+        if(w.n===15){
+          if(dow===2){ // W15 수: 러닝
+            days.push({...base, kind:'run', counts:true, session:{...w.wed}});
+          } else { // W15 목: 휴식
+            days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc:'레이스 주 — 가볍게. 보완 운동 15분 이내.'}});
+          }
+        } else {
+          const thisIsFutsal = (DOW[dow]===fday);
+          if(thisIsFutsal){
+            days.push({...base, kind:'futsal', counts:true, session:{label:'풋살 2시간', desc:w.futsal}});
+          } else {
+            days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc:'풋살이 아닌 날. 보완 운동 15~20분 또는 휴식.'}});
+          }
+        }
+      } else { // 화(1), 금(4): 휴식/보완
+        days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc: dow===1?'풋살 전날 컨디션 조정. 보완 운동 15~20분 또는 휴식.':'토요일 메인 세션 대비. 보완 운동 15분 또는 휴식.'}});
+      }
+    }
+  }
+  return days;
+}
+
+/* ---------- 진행률 ---------- */
+function countDone(allDays){
+  let done=0, total=0;
+  for(const d of allDays){ if(d.counts){ total++; if(isDone(d)) done++; } }
+  return {done, total};
+}
+function isDone(d){
+  const s = state.days[d.id]; if(!s) return false;
+  if(d.kind==='run'||d.kind==='race') return !!s.cMain;
+  if(d.kind==='futsal') return !!s.cMain;
+  return false;
+}
+
+/* ---------- 렌더 ---------- */
+const $ = sel => document.querySelector(sel);
+const weeksEl = $('#weeks');
+let ALL = [];
+
+function render(){
+  ALL = buildDays();
+  const tId = todayId();
+
+  // 상단 바
+  const dleft = daysBetween(tId, RACE_DATE);
+  $('#dday').textContent = dleft>0 ? `D-${dleft}` : (dleft===0 ? 'D-DAY' : '레이스 종료');
+  const {done,total} = countDone(ALL);
+  const pct = total? Math.round(done/total*100):0;
+  $('#progFill').style.width = pct+'%';
+  $('#progText').textContent = `완료 ${done} / ${total} 세션`;
+  $('#progPct').textContent = pct+'%';
+
+  // 현재 주차
+  let curW = WEEKS.find(w => { const s=parseD(w.start), e=addDays(s,6); const t=parseD(tId); return t>=s && t<=e; });
+  if(!curW){ curW = parseD(tId) < parseD(WEEKS[0].start) ? WEEKS[0] : WEEKS[WEEKS.length-1]; }
+  $('#wkline').textContent = `W${curW.n} · ${curW.phase} · ${curW.focus}`;
+
+  // 주별 렌더
+  weeksEl.innerHTML = '';
+  for(const w of WEEKS){
+    const wDays = ALL.filter(d=>d.wn===w.n);
+    const isCur = (w.n===curW.n);
+    const sec = document.createElement('section');
+    sec.className = 'week' + (isCur?' open':' collapsed');
+    const start=parseD(w.start), end=addDays(start,6);
+    const wd = countDone(wDays);
+    sec.innerHTML = `
+      <div class="week-head">
+        <span class="wbadge" style="background:${w.color}">W${w.n}</span>
+        <div class="whead-main">
+          <div class="wrange">${mdLabel(start)} ~ ${mdLabel(end)} <span style="color:var(--text-soft);font-weight:600;font-size:12px">${w.phase}</span></div>
+          <div class="wfocus">${w.focus}</div>
+          <div class="wmini">완료 ${wd.done}/${wd.total} · 풋살일 ${w.n===15?'없음(레이스 주)':futsalDay(w.n)}</div>
+        </div>
+        <span class="wkm">${w.km}km</span>
+        <span class="wchev">▾</span>
+      </div>
+      <div class="week-body"></div>`;
+    const body = sec.querySelector('.week-body');
+
+    // 풋살 토글 (W15 제외)
+    if(w.n!==15){
+      const ft = document.createElement('div');
+      ft.className='ftoggle';
+      ft.innerHTML = `<span class="lab">이번 주 풋살 요일</span>
+        <span class="seg-btns">
+          <button data-d="수" class="${futsalDay(w.n)==='수'?'active':''}">수</button>
+          <button data-d="목" class="${futsalDay(w.n)==='목'?'active':''}">목</button>
+        </span>`;
+      ft.querySelectorAll('button').forEach(b=>{
+        b.addEventListener('click', e=>{ e.stopPropagation(); state.futsal[w.n]=b.dataset.d; save(); render(); });
+      });
+      body.appendChild(ft);
+    }
+
+    for(const d of wDays) body.appendChild(dayCard(d, tId));
+
+    // 주차 노트
+    const nt = document.createElement('div');
+    nt.style.cssText='font-size:12px;color:#2c4866;background:#eef4fb;border:1px solid #b8d0e8;border-radius:8px;padding:9px 11px;margin-top:4px;line-height:1.5;';
+    nt.innerHTML = `<strong style="color:var(--accent)">노트.</strong> ${w.note}`;
+    body.appendChild(nt);
+
+    sec.querySelector('.week-head').addEventListener('click', ()=>{
+      sec.classList.toggle('open'); sec.classList.toggle('collapsed');
+    });
+    weeksEl.appendChild(sec);
+  }
+}
+
+function tagFor(d){
+  if(d.kind==='futsal') return {cls:'futsal', txt:'풋살'};
+  if(d.kind==='race') return {cls:'race', txt:'RACE'};
+  if(d.kind==='rest') return {cls:'rest', txt:'완전휴식'};
+  if(d.kind==='restSupp') return {cls:'rest', txt:'휴식'};
+  const t=d.session.tag||'easy';
+  const map={easy:'Easy',long:'Long',tempo:'Tempo',interval:'Interval'};
+  return {cls:t, txt:map[t]||'Run'};
+}
+
+function dayCard(d, tId){
+  const s = dayState(d.id);
+  const isToday = d.id===tId;
+  const card = document.createElement('div');
+  const restish = (d.kind==='rest'||d.kind==='restSupp');
+  card.className = 'day' + (isToday?' today expanded':'') + (restish?' rest':'');
+  const tag = tagFor(d);
+  const distTxt = d.session.dist ? `${d.session.dist}km` : (d.kind==='futsal'?'~5km':'');
+  const summary = restish ? d.session.label : `${d.session.label}${distTxt?' · '+distTxt:''}`;
+  const doneMark = d.counts ? `<span class="dcheck ${isDone(d)?'done':''}">${isDone(d)?'✔':'○'}</span>` : '';
+
+  card.innerHTML = `
+    <div class="day-head">
+      <span class="ddate">${mdLabel(d.dt)}<span class="dow"> ${DOW[d.dow]}</span></span>
+      ${isToday?'<span class="today-pin">오늘</span>':''}
+      <span class="tag ${tag.cls}">${tag.txt}</span>
+      <span class="dsummary">${summary}</span>
+      ${doneMark}
+      <span class="dchev">▾</span>
+    </div>
+    <div class="day-body"></div>`;
+
+  const head = card.querySelector('.day-head');
+  head.addEventListener('click', ()=> card.classList.toggle('expanded'));
+  const body = card.querySelector('.day-body');
+
+  // 계획 박스
+  const plan = document.createElement('div');
+  plan.className='plan-box';
+  let planHtml='';
+  if(!restish){
+    planHtml += `<div class="pl-line"><span class="pl-k">세션</span><span class="pl-v">${d.session.label}</span></div>`;
+    if(d.session.dist) planHtml += `<div class="pl-line"><span class="pl-k">거리</span><span class="pl-v">${d.session.dist} km</span></div>`;
+    if(d.session.paceTxt) planHtml += `<div class="pl-line"><span class="pl-k">페이스</span><span class="pl-v">${d.session.paceTxt}</span></div>`;
+    if(d.kind==='futsal') planHtml += `<div class="pl-line"><span class="pl-k">거리</span><span class="pl-v">~5 km · 2시간 (변동)</span></div>`;
+  } else {
+    planHtml += `<div class="pl-line"><span class="pl-k">일정</span><span class="pl-v">${d.session.label}</span></div>`;
+  }
+  if(d.session.desc) planHtml += `<div class="pl-desc">${d.session.desc}</div>`;
+  plan.innerHTML = planHtml;
+  body.appendChild(plan);
+
+  if(d.kind==='run'||d.kind==='race'){
+    body.appendChild(runInputs(d, s));
+  } else if(d.kind==='futsal'){
+    body.appendChild(futsalInputs(d, s));
+  } else {
+    body.appendChild(restInputs(d, s));
+  }
+  return card;
+}
+
+/* ----- 입력 컴포넌트 ----- */
+function field(label, inner){
+  const f=document.createElement('div'); f.className='field';
+  f.innerHTML = `<label>${label}</label>`; f.appendChild(inner); return f;
+}
+function commit(card){ save(); refreshDoneMark(); }
+function refreshDoneMark(){
+  // 진행률만 갱신 (전체 재렌더 없이)
+  const {done,total} = countDone(ALL);
+  const pct = total? Math.round(done/total*100):0;
+  $('#progFill').style.width = pct+'%';
+  $('#progText').textContent = `완료 ${done} / ${total} 세션`;
+  $('#progPct').textContent = pct+'%';
+}
+
+function checkRow(s, dayId, onMain){
+  const wrap=document.createElement('div'); wrap.className='checks';
+  const defs=[['cWU','워밍업'],['cMain','본운동'],['cCD','쿨다운']];
+  for(const [k,lab] of defs){
+    const b=document.createElement('div'); b.className='chk'+(s[k]?' on':'');
+    b.innerHTML=`<span class="box">${s[k]?'✔':''}</span>${lab}`;
+    b.addEventListener('click', ()=>{
+      s[k]=!s[k]; b.classList.toggle('on'); b.querySelector('.box').textContent=s[k]?'✔':'';
+      save(); refreshDoneMark();
+      if(k==='cMain'){ // 본운동 체크 시 카드 헤더 마크 갱신
+        const card=b.closest('.day'); const m=card.querySelector('.dcheck');
+        if(m){ m.classList.toggle('done', !!s.cMain); m.textContent=s.cMain?'✔':'○'; }
+      }
+    });
+    wrap.appendChild(b);
+  }
+  return wrap;
+}
+
+function scale(s, key, max, cls, hintL, hintR){
+  const box=document.createElement('div');
+  const sc=document.createElement('div'); sc.className='scale '+cls+(max>5?' rpe10':'');
+  for(let i=1;i<=max;i++){
+    const b=document.createElement('button'); b.textContent=i;
+    if(s[key]===i) b.classList.add('sel');
+    b.addEventListener('click', ()=>{
+      s[key] = (s[key]===i? null : i);
+      sc.querySelectorAll('button').forEach((x,idx)=>x.classList.toggle('sel', s[key]===idx+1));
+      save();
+    });
+    sc.appendChild(b);
+  }
+  box.appendChild(sc);
+  if(hintL||hintR){ const h=document.createElement('div'); h.className='scale-hint'; h.innerHTML=`<span>${hintL||''}</span><span>${hintR||''}</span>`; box.appendChild(h); }
+  return box;
+}
+
+function textInput(s, key, ph, type){
+  const i=document.createElement('input'); i.type=type||'text'; i.placeholder=ph;
+  if(type==='number'){ i.inputMode='decimal'; }
+  if(s[key]!=null) i.value=s[key];
+  i.addEventListener('input', ()=>{ s[key]=i.value; save(); });
+  return i;
+}
+
+function parsePace(txt){ // "5:20" -> 320초
+  if(!txt) return null; const m=String(txt).trim().match(/^(\d{1,2}):(\d{2})$/); if(!m) return null;
+  return (+m[1])*60+(+m[2]);
+}
+function fmtSec(sec){ const sign=sec<0?'-':'+'; const a=Math.abs(Math.round(sec)); return `${sign}${a}초`; }
+
+function runInputs(d, s){
+  const box=document.createDocumentFragment();
+  box.appendChild(field('완료 체크', checkRow(s, d.id)));
+
+  // 거리 + 페이스
+  const row=document.createElement('div'); row.className='row2';
+  const dEl=textInput(s,'dist','예: 5.2','number');
+  const distField=field('실제 거리 (km)', dEl);
+  const distDiff=document.createElement('div'); distDiff.className='diff'; distField.appendChild(distDiff);
+  const pEl=textInput(s,'pace','예: 5:20');
+  const paceField=field('실제 평균 페이스 (m:ss)', pEl);
+  const paceDiff=document.createElement('div'); paceDiff.className='diff'; paceField.appendChild(paceDiff);
+  row.appendChild(distField); row.appendChild(paceField);
+  box.appendChild(row);
+
+  function updDist(){
+    const plan=d.session.dist; const act=parseFloat(s.dist);
+    if(plan && !isNaN(act)){
+      const diff=+(act-plan).toFixed(2);
+      const cls = diff===0?'match':'under';
+      distDiff.className='diff '+cls;
+      distDiff.innerHTML = `<span class="plan-ref">계획 ${plan}km</span> · 실제 ${act}km (${diff>0?'+':''}${diff}km)`;
+    } else { distDiff.textContent=''; }
+  }
+  function updPace(){
+    const planSec=d.session.paceSec; const actSec=parsePace(s.pace);
+    if(planSec && actSec){
+      const diff=actSec-planSec;
+      const cls = diff===0?'match':'over';
+      paceDiff.className='diff '+cls;
+      const planTxt=`${Math.floor(planSec/60)}:${String(planSec%60).padStart(2,'0')}`;
+      paceDiff.innerHTML = `<span class="plan-ref">계획 ${planTxt}</span> · 실제 ${s.pace} (${fmtSec(diff)})`;
+    } else { paceDiff.textContent=''; }
+  }
+  dEl.addEventListener('input', updDist); pEl.addEventListener('input', updPace);
+  updDist(); updPace();
+
+  box.appendChild(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  box.appendChild(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
+  box.appendChild(field('메모', memoEl(s)));
+  return box;
+}
+
+function futsalInputs(d, s){
+  const box=document.createDocumentFragment();
+  const wrap=document.createElement('div'); wrap.className='checks';
+  const b=document.createElement('div'); b.className='chk'+(s.cMain?' on':''); b.style.flex='1';
+  b.innerHTML=`<span class="box">${s.cMain?'✔':''}</span>완료`;
+  b.addEventListener('click', ()=>{
+    s.cMain=!s.cMain; b.classList.toggle('on'); b.querySelector('.box').textContent=s.cMain?'✔':'';
+    save(); refreshDoneMark();
+    const card=b.closest('.day'); const m=card.querySelector('.dcheck');
+    if(m){ m.classList.toggle('done', !!s.cMain); m.textContent=s.cMain?'✔':'○'; }
+  });
+  wrap.appendChild(b);
+  box.appendChild(field('완료 체크', wrap));
+  box.appendChild(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  box.appendChild(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
+  box.appendChild(field('메모', memoEl(s)));
+  return box;
+}
+
+function restInputs(d, s){
+  const box=document.createDocumentFragment();
+  if(d.kind==='restSupp'){
+    const note=document.createElement('div'); note.className='supp-note';
+    note.textContent='보완 운동(선택): 글루트 브릿지·카프 레이즈·플랭크·발목 가동 등 15~20분.';
+    box.appendChild(note);
+  }
+  const row=document.createElement('div'); row.className='row2';
+  row.appendChild(field('안정시 심박수 (선택)', textInput(s,'hr','예: 52','number')));
+  row.appendChild(field('수면 시간 (h)', textInput(s,'sleep','예: 7.5','number')));
+  box.appendChild(row);
+  box.appendChild(field('컨디션 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  box.appendChild(field('메모', memoEl(s)));
+  return box;
+}
+
+function memoEl(s){
+  const t=document.createElement('textarea'); t.rows=2; t.placeholder='자유 메모';
+  if(s.memo) t.value=s.memo;
+  t.addEventListener('input', ()=>{ s.memo=t.value; save(); });
+  return t;
+}
+
+/* ---------- 툴바 ---------- */
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+$('#btnToday').addEventListener('click', ()=>{
+  const tId=todayId();
+  const today = ALL.find(d=>d.id===tId);
+  // 해당 주 펼치고 오늘 카드로 스크롤
+  let targetW = today? today.wn : null;
+  if(targetW==null){ targetW = parseD(tId)<parseD(WEEKS[0].start)?1:15; }
+  document.querySelectorAll('.week').forEach((sec,idx)=>{
+    const open = (idx+1===targetW);
+    sec.classList.toggle('open', open); sec.classList.toggle('collapsed', !open);
+  });
+  setTimeout(()=>{
+    const el = document.querySelector('.day.today') || document.querySelector('.week.open');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+  },60);
+});
+
+$('#btnExport').addEventListener('click', ()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url;
+  a.download='running-log-10k-backup.json'; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+  toast('백업 파일을 내보냈습니다');
+});
+$('#btnImport').addEventListener('click', ()=> $('#fileInput').click());
+$('#fileInput').addEventListener('change', e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const obj=JSON.parse(r.result); if(obj && obj.days){ state=obj; if(!state.futsal) state.futsal={}; save(); render(); toast('백업을 불러왔습니다'); } else toast('형식이 올바르지 않습니다'); }catch(err){ toast('불러오기 실패'); } };
+  r.readAsText(f); e.target.value='';
+});
+$('#btnReset').addEventListener('click', ()=>{
+  if(confirm('모든 기록을 삭제할까요? 되돌릴 수 없습니다. (백업을 먼저 내보내세요)')){
+    state={days:{}, futsal:{}}; save(); render(); toast('초기화했습니다');
+  }
+});
+
+render();
+</script>
+</body>
+</html>

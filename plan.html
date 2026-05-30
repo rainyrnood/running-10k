@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10K 5:15/km 커리큘럼 - 2026.09.12</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f5f7;
+    --border: #e4e6ea;
+    --border-strong: #d0d3d8;
+    --text: #1a1d21;
+    --text-muted: #5a6068;
+    --text-soft: #8a8f96;
+    --accent: #1f4e8a;
+    --base: #5B9BD5;
+    --build: #70AD47;
+    --peak: #ED7D31;
+    --taper: #A5A5A5;
+    --race: #C00000;
+    --warn-bg: #fff7e6;
+    --warn-border: #f0c674;
+    --info-bg: #eef4fb;
+    --info-border: #b8d0e8;
+    --danger-bg: #fdecec;
+    --danger-border: #e8b3b3;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; }
+  header.hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+  }
+  header.hero h1 {
+    font-size: 28px;
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+  header.hero .subtitle {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .metric {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .metric .label {
+    font-size: 12px;
+    color: var(--text-soft);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .metric .value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .metric .value .small { font-size: 13px; color: var(--text-muted); font-weight: 400; margin-left: 4px; }
+
+  nav.toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 28px;
+  }
+  nav.toc h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  nav.toc ol {
+    margin: 0; padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+  nav.toc a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+  }
+  nav.toc a:hover { border-bottom-color: var(--accent); }
+
+  section.block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 22px;
+  }
+  section.block h2 {
+    font-size: 21px;
+    margin: 0 0 18px;
+    color: var(--text);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+  section.block h3 {
+    font-size: 16px;
+    margin: 22px 0 10px;
+    color: var(--text);
+  }
+  section.block h4 {
+    font-size: 14px;
+    margin: 16px 0 6px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  p { margin: 0 0 12px; color: var(--text); }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 4px; }
+
+  /* Phase chart */
+  .phase-chart {
+    display: flex;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .phase-chart .seg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    flex-direction: column;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  }
+  .phase-chart .seg .sub { font-size: 11px; font-weight: 400; opacity: 0.9; }
+  .seg.base  { background: var(--base);  flex: 4; }
+  .seg.build { background: var(--build); flex: 5; }
+  .seg.peak  { background: var(--peak);  flex: 4; }
+  .seg.taper { background: var(--taper); flex: 1.5; }
+  .seg.race  { background: var(--race);  flex: 0.5; }
+  .phase-legend {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    font-size: 13px; color: var(--text-muted);
+  }
+  .phase-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .phase-legend .l-base::before  { background: var(--base); }
+  .phase-legend .l-build::before { background: var(--build); }
+  .phase-legend .l-peak::before  { background: var(--peak); }
+  .phase-legend .l-taper::before { background: var(--taper); }
+  .phase-legend .l-race::before  { background: var(--race); }
+
+  /* Week cards */
+  .week-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .week-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .week-badge {
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+  }
+  .week-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .week-meta {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+  .week-meta .km {
+    background: #fff;
+    border: 1px solid var(--border);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .week-focus {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    width: 100%;
+  }
+  .sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .sessions-table th, .sessions-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .sessions-table th {
+    background: #f9fafb;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .sessions-table tr:last-child td { border-bottom: none; }
+  .sessions-table .col-day { width: 10%; font-weight: 600; }
+  .sessions-table .col-type { width: 18%; }
+  .sessions-table .col-dist { width: 10%; }
+  .sessions-table .col-pace { width: 22%; }
+  .sessions-table .col-desc { width: 40%; color: var(--text-muted); }
+  .type-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+  }
+  .type-tag.futsal { background: #fff4e6; border-color: #f5c890; color: #a04a00; }
+  .type-tag.easy { background: #eaf3fb; border-color: #b8d0e8; color: #2256a0; }
+  .type-tag.long { background: #eef6e7; border-color: #c4dfa8; color: #3d6b1b; }
+  .type-tag.tempo { background: #fbf0e6; border-color: #f0b07a; color: #984500; }
+  .type-tag.interval { background: #fbe6e6; border-color: #e8a4a4; color: #8b1e1e; }
+  .type-tag.race { background: #c00000; border-color: #c00000; color: #fff; }
+  .week-note {
+    background: var(--info-bg);
+    border-top: 1px solid var(--info-border);
+    padding: 10px 18px;
+    font-size: 13px;
+    color: #2c4866;
+  }
+  .week-note strong { color: var(--accent); }
+
+  /* General tables */
+  table.std {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 16px;
+    font-size: 14px;
+  }
+  table.std th, table.std td {
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.std th {
+    background: var(--surface-2);
+    font-weight: 600;
+    color: var(--text);
+  }
+  table.std tr:nth-child(even) td { background: #fbfbfc; }
+
+  /* Callouts */
+  .callout {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .callout.warn {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: #6b4a00;
+  }
+  .callout.info {
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    color: #234970;
+  }
+  .callout.danger {
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    color: #832222;
+  }
+  .callout strong { font-weight: 700; }
+
+  /* Race day timeline */
+  .timeline { list-style: none; padding-left: 0; }
+  .timeline li {
+    border-left: 3px solid var(--border-strong);
+    padding: 4px 0 10px 16px;
+    margin-left: 8px;
+    position: relative;
+  }
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: -7px; top: 8px;
+    width: 11px; height: 11px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+  }
+  .timeline li.race::before { background: var(--race); }
+  .timeline .when {
+    font-weight: 700;
+    color: var(--text);
+    margin-right: 8px;
+  }
+
+  footer.foot {
+    margin-top: 28px;
+    text-align: center;
+    color: var(--text-soft);
+    font-size: 12px;
+  }
+
+  @media (max-width: 720px) {
+    .container { padding: 20px 14px 60px; }
+    header.hero { padding: 22px 20px; }
+    section.block { padding: 22px 18px; }
+    .week-meta { width: 100%; margin-left: 0; }
+    .sessions-table { font-size: 12.5px; }
+    .sessions-table th, .sessions-table td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <h1>10K 5:15/km 커리큘럼</h1>
+    <div class="subtitle">2026년 9월 12일 (토) 레이스 · 15주 훈련 · 직장인 + 풋살러용</div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">현재 5K 페이스</div>
+        <div class="value">5:45<span class="small">/km</span></div>
+      </div>
+      <div class="metric">
+        <div class="label">목표 10K 페이스</div>
+        <div class="value">5:15<span class="small">/km</span></div>
+      </div>
+      <div class="metric">
+        <div class="label">목표 기록</div>
+        <div class="value">52:30</div>
+      </div>
+      <div class="metric">
+        <div class="label">D-Day</div>
+        <div class="value">9월 12일<span class="small"> (토)</span></div>
+      </div>
+      <div class="metric">
+        <div class="label">주간 빈도</div>
+        <div class="value">3회<span class="small"> (풋살 1 + 러닝 2)</span></div>
+      </div>
+      <div class="metric">
+        <div class="label">총 기간</div>
+        <div class="value">15주</div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <h3>목차</h3>
+    <ol>
+      <li><a href="#overview">전체 개요</a></li>
+      <li><a href="#weekly-template">주간 템플릿</a></li>
+      <li><a href="#schedule">15주 상세 스케줄</a></li>
+      <li><a href="#pace-zones">페이스 존 가이드</a></li>
+      <li><a href="#summer">세종시 여름 적응</a></li>
+      <li><a href="#warmup">워밍업·쿨다운</a></li>
+      <li><a href="#supplement">풋살러 보완 운동</a></li>
+      <li><a href="#race-week">레이스 주간 프로토콜</a></li>
+      <li><a href="#nutrition">영양·수분</a></li>
+      <li><a href="#risk">위험 신호·휴식 트리거</a></li>
+    </ol>
+  </nav>
+
+  <section class="block" id="overview">
+    <h2>전체 개요</h2>
+    <p>현재 5km @ 5:45/km(28:45) 수준에서 목표 10km @ 5:15/km(52:30)로 가기 위해, <strong>거리는 2배</strong>, <strong>페이스는 km당 30초 단축</strong>이 필요합니다. 15주는 충분한 시간이며, 풋살이 이미 고강도 자극을 제공하므로 평일 러닝은 <strong>회복·유산소 위주</strong>로 두고 토요일을 메인 자극 세션으로 집중합니다.</p>
+    <div class="phase-chart">
+      <div class="seg base">Base<span class="sub">W1-4 · 루틴 + 베이스</span></div>
+      <div class="seg build">Build<span class="sub">W5-9 · 템포·인터벌</span></div>
+      <div class="seg peak">Peak<span class="sub">W10-13 · 레이스 페이스</span></div>
+      <div class="seg taper">Taper<span class="sub">W14</span></div>
+      <div class="seg race">R<span class="sub">W15</span></div>
+    </div>
+    <div class="phase-legend">
+      <span class="l-base">Base (1~4주)</span>
+      <span class="l-build">Build (5~9주)</span>
+      <span class="l-peak">Peak (10~13주)</span>
+      <span class="l-taper">Taper (14주)</span>
+      <span class="l-race">Race Week (15주)</span>
+    </div>
+    <div class="callout info">
+      <strong>핵심 원칙.</strong> 풋살이 주간 인터벌 역할을 대체합니다. 평일 러닝은 절대 강도를 올리지 않고 Easy로 유지, 토요일에 모든 자극을 집중하고 일요일 완전 휴식으로 회복합니다. 이 구조가 직장인 + 풋살러에게 가장 안전합니다.
+    </div>
+  </section>
+
+  <section class="block" id="weekly-template">
+    <h2>주간 템플릿</h2>
+    <table class="std">
+      <thead>
+        <tr><th style="width:14%">요일</th><th style="width:22%">세션</th><th style="width:14%">강도</th><th>비고</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>월</td><td>Easy 러닝 (저녁)</td><td>저강도</td><td>회복 페이스. 다음 날 출근 영향 거의 없음.</td></tr>
+        <tr><td>화</td><td>휴식 또는 보완 운동 15~20분</td><td>없음/저강도</td><td>풋살 전날 컨디션 조정.</td></tr>
+        <tr><td>수 또는 목</td><td>풋살 2시간 (저녁)</td><td>하드</td><td>주간 인터벌 자극 대체.</td></tr>
+        <tr><td>금</td><td>휴식 또는 보완 운동 15분</td><td>없음/저강도</td><td>토요일 메인 세션 대비.</td></tr>
+        <tr><td>토</td><td>메인 세션 (오전)</td><td>하드</td><td>롱런·템포·인터벌·레이스 페이스 로테이션.</td></tr>
+        <tr><td>일</td><td>완전 휴식</td><td>없음</td><td>가벼운 산책만 허용.</td></tr>
+      </tbody>
+    </table>
+    <p style="color: var(--text-muted); font-size: 13px;">풋살이 수요일이면 토요일 메인 세션까지 회복 시간이 길어 가장 이상적입니다. 목요일이면 토요일 인터벌 직전 발목·종아리 컨디션을 한 번 더 점검하세요.</p>
+  </section>
+
+  <section class="block" id="schedule">
+    <h2>15주 상세 스케줄</h2>
+    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 18px;">각 주의 풋살은 수요일 또는 목요일 중 본인 일정에 맞게 진행. 토요일 세션은 오전 새벽 시간대 권장(특히 7~8월).</p>
+
+    <!-- WEEK 1 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#5B9BD5">W1 · Base</span>
+        <span class="week-title">6/1 (월) ~ 6/7 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">18 km</span></span>
+        <div class="week-focus">초점: 루틴 정착 + 베이스 빌딩</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>5 km</td><td>6:30/km · 약 32분</td><td>대화 가능한 강도, 코호흡 유지. 페이스 신경쓰지 말고 시간 채우기.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>풋살 자체가 인터벌 자극. 시합 후 단백질 + 탄수화물 보충.</td></tr>
+          <tr><td>토</td><td><span class="type-tag long">Long Easy</span></td><td>8 km</td><td>6:20/km · 약 51분</td><td>현재 5km 베이스에서 +60% 거리. 마지막 1km 페이스 약간 줄이며 마무리.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>노트.</strong> 첫 주는 페이스보다 루틴 정착이 우선입니다. 풋살 다음 날 근육통이 심하면 월요일 Easy를 화요일로 옮기세요. 신발·양말·러닝 루트를 점검해두세요.</div>
+    </div>
+
+    <!-- WEEK 2 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#5B9BD5">W2 · Base</span>
+        <span class="week-title">6/8 (월) ~ 6/14 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">20 km</span></span>
+        <div class="week-focus">초점: 주간 거리 점진 증가</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>6 km</td><td>6:20/km · 약 38분</td><td>지난주보다 1km 추가. 호흡이 가빠지면 속도 늦추기.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>풋살 전 5분 동적 스트레칭. 햄스트링·종아리 풀고 들어가기.</td></tr>
+          <tr><td>토</td><td><span class="type-tag long">Long Easy</span></td><td>9 km</td><td>6:20/km · 약 57분</td><td>거리 1km 증가. 7km 이후 페이스가 무너지면 마지막 2km는 6:30으로.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>노트.</strong> 세종 6월 중순 기온 25도 전후. 토요일 장거리는 오전 7시 이전 출발 권장. 수분 200ml 미리 마시고 시작하세요.</div>
+    </div>
+
+    <!-- WEEK 3 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#5B9BD5">W3 · Base</span>
+        <span class="week-title">6/15 (월) ~ 6/21 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">22 km</span></span>
+        <div class="week-focus">초점: 유산소 베이스 강화</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>7 km</td><td>6:20/km · 약 44분</td><td>꾸준한 페이스 유지. 마지막 500m 가볍게 빌드업.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>전반전 컨디션 체크, 후반에 강도 올리기. 끝나고 10분 정적 스트레칭.</td></tr>
+          <tr><td>토</td><td><span class="type-tag long">Long + Strides</span></td><td>10 km</td><td>6:15/km · 약 63분</td><td>10km 첫 진입. 종료 후 100m 스트라이드 4회(90% 노력) 추가.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>노트.</strong> 처음 10km 진입 주차. 무릎·발목 통증 신호에 민감해지세요. 일요일은 무조건 완전 휴식.</div>
+    </div>
+
+    <!-- WEEK 4 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#5B9BD5">W4 · Base</span>
+        <span class="week-title">6/22 (월) ~ 6/28 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">19 km</span></span>
+        <div class="week-focus">초점: 베이스 다지기 (소폭 컷백)</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>6 km</td><td>6:20/km · 약 38분</td><td>회복 위주. 다리 무거우면 5km로 줄여도 됨.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>평소대로 진행. 부상 신호 없는지 발목·무릎 점검.</td></tr>
+          <tr><td>토</td><td><span class="type-tag long">Long Easy</span></td><td>9 km</td><td>6:15/km · 약 56분</td><td>지난주 대비 1km 감소. 페이스를 약간 끌어올려 균형 잡기.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>노트.</strong> Base 단계 마지막 주. 다음 주부터 강도가 들어옵니다. 컨디션 좋으면 토요일 마지막 2km를 5:50으로 빌드업 가능.</div>
+    </div>
+
+    <!-- WEEK 5 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#70AD47">W5 · Build</span>
+        <span class="week-title">6/29 (월) ~ 7/5 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">23 km</span></span>
+        <div class="week-focus">초점: 강도 도입 준비 — Marathon 페이스 첫 경험</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>6 km</td><td>6:20/km · 약 38분</td><td>회복 페이스 엄격히 지키기. 풋살 후 다리 상태 점검.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>토요일 마라톤 페이스 구간 위해 무리한 전력질주는 줄이기.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Long + M-pace</span></td><td>12 km</td><td>6:15 → 마지막 3km @ 5:30/km · 약 73분</td><td>9km Easy 후 마지막 3km를 마라톤 페이스(5:30)로 마무리. 첫 페이스 변환 훈련.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>노트.</strong> Build 단계 진입. 장마 시작될 수 있음 — 비 오면 우비 입고라도 진행, 천둥/번개는 절대 강행 금지. 토요일 새벽 6시 출발 권장.</div>
+    </div>
+
+    <!-- WEEK 6 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#70AD47">W6 · Build</span>
+        <span class="week-title">7/6 (월) ~ 7/12 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">24 km</span></span>
+        <div class="week-focus">초점: Tempo 첫 도입</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>7 km</td><td>6:15/km · 약 44분</td><td>수요일/목요일 풋살 전 가볍게 다리 풀기.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>토요일 템포 대비 풋살 마지막 10분은 강도 낮추기.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Tempo</span></td><td>12 km</td><td>WU 3km + 3km @ 5:30 + 3km Easy + 3km CD · 약 75분</td><td>첫 템포 세션. 3km @ 5:30 구간은 약간 숨찬 정도(말 한 문장은 가능). 종료 후 워밍다운 필수.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>폭염 주의.</strong> 페이스 +15초/km 허용, 강도 유지보다 시간·거리 유지 우선. 토요일 새벽 5시 30분 출발 고려. 전해질 음료 준비.</div>
+    </div>
+
+    <!-- WEEK 7 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#70AD47">W7 · Build</span>
+        <span class="week-title">7/13 (월) ~ 7/19 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">25 km</span></span>
+        <div class="week-focus">초점: 인터벌 첫 도입</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>7 km</td><td>6:15/km · 약 44분</td><td>회복 모드. 토요일 인터벌 위해 다리 비축.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>수요일이면 좋음(토요일까지 회복 시간 확보). 목요일이면 토요일 인터벌 전 발목·종아리 상태 체크.</td></tr>
+          <tr><td>토</td><td><span class="type-tag interval">Intervals</span></td><td>13 km</td><td>WU 3km + 4×800m @ 4:45 (R 2분 jog) + CD 3km · 약 78분</td><td>첫 인터벌. 4세트 모두 4:45 균일하게. 마지막 세트가 더 빠르면 안 됨(페이스 감각 훈련).</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>폭염 주의.</strong> 페이스 +15초/km 허용. 인터벌은 트랙(있다면) 또는 평탄한 자전거도로 추천. 어지러움·메스꺼움 신호 즉시 중단.</div>
+    </div>
+
+    <!-- WEEK 8 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#70AD47">W8 · Build</span>
+        <span class="week-title">7/20 (월) ~ 7/26 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">27 km</span></span>
+        <div class="week-focus">초점: Tempo 거리 증가</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>8 km</td><td>6:15/km · 약 50분</td><td>주간 최장 Easy. 폭염이면 60분 시간 우선으로 진행.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>수분 보충 평소의 1.5배. 풋살장 도착 1시간 전부터 500ml 이상.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Split Tempo</span></td><td>14 km</td><td>WU 3km + 4km @ 5:25 + 2km Easy + 2km @ 5:25 + CD 3km · 약 87분</td><td>분할 템포. 두 구간 모두 5:25 유지. 첫 구간 끝나고 2km Easy로 호흡 회복 후 두 번째 구간.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>폭염 절정.</strong> 7월 말 세종 한낮 35도 가능 — 토요일 무조건 새벽. 수면 7시간 이상 사수.</div>
+    </div>
+
+    <!-- WEEK 9 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#70AD47">W9 · Build (컷백)</span>
+        <span class="week-title">7/27 (월) ~ 8/2 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">20 km</span></span>
+        <div class="week-focus">초점: 컷백 주 — 회복 우선</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>5 km</td><td>6:20/km · 약 32분</td><td>짧게 회복. 다리 무겁다 싶으면 휴식으로 전환.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>강도 70%로. 컷백 주의 의도(회복)를 살리기.</td></tr>
+          <tr><td>토</td><td><span class="type-tag long">Long Easy</span></td><td>10 km</td><td>6:20/km · 약 63분</td><td>강도 없이 시간 채우기. 페이스보다 폼·호흡 점검에 집중.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>컷백 주.</strong> 약 25% 볼륨 감소. 누적 피로 털어내고 Peak 진입 준비. 잠·영양·마사지로 회복 극대화.</div>
+    </div>
+
+    <!-- WEEK 10 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#ED7D31">W10 · Peak</span>
+        <span class="week-title">8/3 (월) ~ 8/9 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">26 km</span></span>
+        <div class="week-focus">초점: Race Pace 첫 도입</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>7 km</td><td>6:15/km · 약 44분</td><td>회복 페이스. 토요일 RP 세션 대비.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>토요일 RP까지 48시간 이상 확보가 이상적.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Race Pace</span></td><td>14 km</td><td>WU 3km + <strong>5km @ 5:15</strong> + 3km Easy + CD 3km · 약 85분</td><td>목표 페이스 5:15 첫 체험. 5km 완주 후 호흡·다리 상태 기록. 무리해서 더 빠르게 X.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>Peak 진입.</strong> 5:15가 어떻게 느껴지는지 몸으로 익히는 주차. 끝나고 회복 식사·낮잠 챙기기. 폭염 시 +15초/km 허용.</div>
+    </div>
+
+    <!-- WEEK 11 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#ED7D31">W11 · Peak</span>
+        <span class="week-title">8/10 (월) ~ 8/16 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">28 km</span></span>
+        <div class="week-focus">초점: Threshold 거리 증가</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>8 km</td><td>6:15/km · 약 50분</td><td>주간 가장 긴 Easy. 폼 점검(케이던스 175-180 목표).</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>평소대로. 발목 테이핑 권장.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Threshold</span></td><td>15 km</td><td>WU 3km + <strong>5km @ 5:05</strong> + 4km Easy + CD 3km · 약 90분</td><td>5km Threshold 1회. 5:05는 1시간 유지 가능한 강도(말 짧게만 가능). 끝까지 페이스 균일하게.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>열대야 대응.</strong> 수면 질 떨어질 수 있음. 에어컨·선풍기로 침실 26도 유지. 폭염 시 +15초/km 허용.</div>
+    </div>
+
+    <!-- WEEK 12 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#ED7D31">W12 · Peak</span>
+        <span class="week-title">8/17 (월) ~ 8/23 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">29 km</span></span>
+        <div class="week-focus">초점: Interval 강화 — 5km 효율 향상</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>8 km</td><td>6:15/km · 약 50분</td><td>수요일/목요일 풋살 + 토요일 인터벌 사이 회복 균형.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>수요일 권장. 토요일 인터벌 핵심 세션이라 회복 시간 길수록 유리.</td></tr>
+          <tr><td>토</td><td><span class="type-tag interval">Intervals</span></td><td>14 km</td><td>WU 3km + <strong>5×1km @ 4:40</strong> (R 90초 jog) + CD 3km · 약 80분</td><td>Peak 인터벌 핵심. 5세트 모두 4:40 균일 — 첫 2세트가 빠르면 마지막에 무너짐. 휴식 90초 jog 엄수.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>핵심 주차.</strong> 이번 인터벌 잘 해내면 5:15는 충분히 가능. 끝나고 단백질 30g + 탄수 60g 30분 이내 섭취.</div>
+    </div>
+
+    <!-- WEEK 13 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#ED7D31">W13 · Peak</span>
+        <span class="week-title">8/24 (월) ~ 8/30 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">30 km</span></span>
+        <div class="week-focus">초점: 최고 볼륨 주 — 레이스 시뮬레이션</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>8 km</td><td>6:15/km · 약 50분</td><td>마지막 고볼륨 Easy. 다리 상태 매일 모니터링.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살</span></td><td>~5 km</td><td>변동 · 2시간</td><td>수요일 권장. 토요일 시뮬레이션 위해 무릎·발목 무리 X.</td></tr>
+          <tr><td>토</td><td><span class="type-tag race">Race Sim</span></td><td>13 km</td><td>WU 2km + <strong>8km @ 5:15</strong> + CD 3km · 약 75분</td><td>마지막 하드 세션. 8km @ 5:15 — 레이스 80% 시뮬레이션. 페이스 균일, 마지막 1km 약간 빌드업 시도.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>피크 마지막.</strong> 이번 8km @ 5:15가 잘 나오면 본 레이스 52:30 완성됩니다. 다음 주부터 테이퍼 — 더 이상 강도/볼륨 늘리지 않기.</div>
+    </div>
+
+    <!-- WEEK 14 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#A5A5A5">W14 · Taper</span>
+        <span class="week-title">8/31 (월) ~ 9/6 (일)</span>
+        <span class="week-meta">주간 거리 <span class="km">18 km</span></span>
+        <div class="week-focus">초점: 볼륨 40% 감소 — 강도는 유지</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>6 km</td><td>6:20/km · 약 38분</td><td>짧고 가볍게. 다리에 신선함 채우기.</td></tr>
+          <tr><td>수/목</td><td><span class="type-tag futsal">풋살 (강도↓)</span></td><td>~4 km</td><td>변동 · 2시간</td><td>기술 위주, 전력질주 자제. <strong>슬라이딩·태클 절대 금지</strong>. 부상 위험 최소화.</td></tr>
+          <tr><td>토</td><td><span class="type-tag tempo">Short Tempo</span></td><td>8 km</td><td>WU 2km + <strong>3km @ 5:15</strong> + CD 3km · 약 48분</td><td>짧지만 날카로운 세션. 3km @ 5:15로 레이스 페이스 감각 유지. 끝나고 다리에 여유 있어야 정상.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>테이퍼 슬럼프 주의.</strong> 갑자기 다리가 무겁고 페이스가 안 나올 수 있음 — 정상입니다. 다음 주에 풀립니다. 새로운 음식·신발·루트 시도 금지.</div>
+    </div>
+
+    <!-- WEEK 15 -->
+    <div class="week-card">
+      <div class="week-head">
+        <span class="week-badge" style="background:#C00000">W15 · Race Week</span>
+        <span class="week-title">9/7 (월) ~ 9/12 (토)</span>
+        <span class="week-meta">주간 거리 <span class="km">12 km</span></span>
+        <div class="week-focus">초점: 레이스 주 — 컨디션 정점 맞추기</div>
+      </div>
+      <table class="sessions-table">
+        <thead><tr><th class="col-day">요일</th><th class="col-type">유형</th><th class="col-dist">거리</th><th class="col-pace">페이스</th><th class="col-desc">내용</th></tr></thead>
+        <tbody>
+          <tr><td>월</td><td><span class="type-tag easy">Easy</span></td><td>5 km</td><td>6:20/km · 약 30분</td><td>짧게 다리 풀기. 호흡·다리 가벼우면 좋은 신호.</td></tr>
+          <tr><td>수</td><td><span class="type-tag easy">Easy + Strides</span></td><td>4 km</td><td>6:15/km + 4×100m strides · 약 25분</td><td>20분 Easy 후 100m 스트라이드 4회. 풋살 이번 주 <strong>SKIP 권장</strong> 또는 기술만 30분 가볍게.</td></tr>
+          <tr><td><strong>토</strong></td><td><span class="type-tag race">RACE 10K</span></td><td><strong>10 km</strong></td><td><strong>5:15/km · 목표 52:30</strong></td><td>레이스 당일. WU 15분 가볍게 + 스트라이드 2회. 첫 1km 절대 오버페이스 X. 5km 지점부터 페이스 평가, 마지막 2km 가능하면 빌드업.</td></tr>
+        </tbody>
+      </table>
+      <div class="week-note"><strong>레이스 주.</strong> 풋살 SKIP 권장(부상 리스크 0%). 금요일 카보 로딩(+50% 탄수), 알코올·매운 음식 금지. 전날 7시간 이상 수면. 신발·복장은 익숙한 것으로.</div>
+    </div>
+  </section>
+
+  <section class="block" id="pace-zones">
+    <h2>페이스 존 가이드</h2>
+    <table class="std">
+      <thead>
+        <tr><th>존</th><th>페이스 (/km)</th><th>시속 (km/h)</th><th>체감 강도</th><th>호흡 상태</th><th>목적</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Easy (E)</strong></td><td>6:15</td><td>9.6</td><td>2~3/10, 매우 편함</td><td>코로만 호흡 가능, 옆 사람과 대화 자유</td><td>모세혈관 발달, 유산소 베이스, 회복</td></tr>
+        <tr><td><strong>Long Run (LR)</strong></td><td>6:00~6:20</td><td>9.5~10.0</td><td>3~4/10, 편함</td><td>코+입 약간, 짧은 문장 대화 가능</td><td>지방 대사 효율, 장거리 내성</td></tr>
+        <tr><td><strong>Marathon (M)</strong></td><td>5:30</td><td>10.9</td><td>5~6/10, 적당히 힘듦</td><td>입 호흡 주, 짧은 단어만 가능</td><td>젖산 역치 직하 적응</td></tr>
+        <tr><td><strong>Race Pace (RP)</strong></td><td>5:15</td><td>11.4</td><td>6~7/10, 힘듦</td><td>깊은 입 호흡, 단어 1~2개</td><td>목표 페이스 신경근 학습</td></tr>
+        <tr><td><strong>Threshold (T)</strong></td><td>5:05</td><td>11.8</td><td>7~8/10, 매우 힘듦</td><td>거친 입 호흡, 말 거의 불가</td><td>젖산 제거 능력, 역치 상향</td></tr>
+        <tr><td><strong>Interval (I)</strong></td><td>4:40</td><td>12.9</td><td>9/10, 최대치 근처</td><td>헐떡임, 발화 불가</td><td>VO2max, 심박출량 상한</td></tr>
+      </tbody>
+    </table>
+    <p>직장인은 주중 회복 자원이 제한되므로 <strong>양극화(Polarized) 훈련</strong>이 효율적입니다. 전체 훈련량의 약 80%를 Easy 영역에서 소화하고 나머지 15~20%만 Threshold 이상 강도로 운용하면, 중간 강도(이른바 회색 지대)에서 누적되는 피로 없이 심폐 능력만 끌어올릴 수 있습니다. 결과적으로 풀타임 근무·풋살 병행에도 부상·번아웃 위험이 낮아집니다.</p>
+  </section>
+
+  <section class="block" id="summer">
+    <h2>세종시 여름 적응 (6~9월)</h2>
+    <ul>
+      <li><strong>6월</strong>: 베이스 빌딩 최적기. 평균 기온 22~26도로 야외 훈련 부담이 가장 낮습니다. 본격적인 주간 거리 증가와 LR 확장을 이 시기에 마쳐 두는 것이 좋습니다.</li>
+      <li><strong>7월~8월 초</strong>: 폭염·장마 본격기. 한낮 30도 이상, 습도 80% 이상이 빈번합니다. 거리보다 <strong>빈도와 유지</strong>가 목표입니다.</li>
+      <li><strong>8월 말~9월</strong>: 점진적 회복기. 같은 노력으로 페이스가 빨라지는 시기로, 6~8월 누적된 더위 적응이 폭발적으로 환원됩니다.</li>
+    </ul>
+
+    <h3>WBGT 기반 조정 룰</h3>
+    <table class="std">
+      <thead><tr><th>체감 온도</th><th>조정</th></tr></thead>
+      <tbody>
+        <tr><td>23도 미만</td><td>정상 진행</td></tr>
+        <tr><td>23~28도</td><td>Easy 페이스 +20초/km, 인터벌 1세트 감소</td></tr>
+        <tr><td>28~30도</td><td>하드 세션 새벽 또는 저녁으로 연기, 거리 20% 단축</td></tr>
+        <tr><td>30도 초과</td><td>야외 하드 세션 금지, Easy만 가능하면 시도</td></tr>
+      </tbody>
+    </table>
+
+    <h3>추천 시간대</h3>
+    <ul>
+      <li>6월: 저녁 19~21시 또는 새벽 6~7시</li>
+      <li>7~8월: <strong>새벽 5~7시 또는 저녁 20시 이후만</strong></li>
+      <li>9월: 점차 저녁대 회복 가능</li>
+    </ul>
+    <div class="callout danger"><strong>한낮 11~16시는 모든 기간 절대 금지.</strong> 세종시는 도심 그늘이 적고 금강·세종호수공원 코스가 노출 구간이 길어 복사열 누적이 빠릅니다.</div>
+
+    <h3>수분 전략</h3>
+    <ul>
+      <li>운동 1시간 전: 물 500ml</li>
+      <li>30분마다: 150ml</li>
+      <li>60분 이상 + 30도 이상: 전해질 보충제 필수 (나트륨 300~500mg/L)</li>
+      <li>운동 후: 체중 감소량의 1.5배 보충 (예: 1kg 감소 시 1.5L)</li>
+    </ul>
+  </section>
+
+  <section class="block" id="warmup">
+    <h2>워밍업·쿨다운</h2>
+    <h3>워밍업 (러닝 전 10분)</h3>
+    <h4>동적 스트레칭 5분 (각 30초씩)</h4>
+    <ol>
+      <li><strong>하이 니</strong> — 제자리에서 양 무릎을 가슴 높이까지 빠르게 끌어올립니다. 고관절 굴근 활성화.</li>
+      <li><strong>버트 킥</strong> — 제자리에서 발뒤꿈치를 엉덩이까지 차올립니다. 햄스트링·무릎 가동 점화.</li>
+      <li><strong>레그 스윙 전후</strong> — 벽을 잡고 한 다리씩 앞뒤로 10회씩 흔듭니다. 고관절 굴신 가동범위 확장.</li>
+      <li><strong>레그 스윙 좌우</strong> — 벽을 잡고 한 다리씩 좌우로 10회씩 흔듭니다. 고관절 외전·내전 풀기.</li>
+      <li><strong>워킹 런지</strong> — 10보 전진. 둔근·대퇴사두 점진 부하.</li>
+      <li><strong>인치웜</strong> — 선 자세에서 손으로 걸어 플랭크로 내려갔다가 발로 손까지 돌아오기 5회.</li>
+    </ol>
+    <ul>
+      <li>가벼운 조깅 3분 (Easy 페이스의 70%)</li>
+      <li>스트라이드 4 × 100m (75% 강도, 사이에 걷기 30초). 신경근에 빠른 페이스 신호 입력.</li>
+    </ul>
+
+    <h3>쿨다운 (러닝 후 10분)</h3>
+    <ul>
+      <li>가벼운 조깅 3분 + 워킹 2분. 심박수 점진 하강.</li>
+    </ul>
+    <h4>정적 스트레칭 5분 (각 30초)</h4>
+    <ol>
+      <li><strong>햄스트링</strong> — 앉아서 한 다리를 펴고 상체를 발끝 쪽으로 굽힙니다. 반동 없이 호흡으로 늘리기.</li>
+      <li><strong>종아리</strong> — 벽을 밀듯이 한 발을 뒤로 빼고 뒤꿈치를 바닥에 붙입니다.</li>
+      <li><strong>둔근 (4자)</strong> — 의자에 앉아 한 발목을 반대 무릎 위에 올리고 상체를 살짝 숙입니다.</li>
+      <li><strong>고관절 굴근</strong> — 런지 자세를 깊게 유지하고 골반을 앞으로 밀어 넣습니다. 장요근 이완.</li>
+      <li><strong>흉추 회전</strong> — 네발 자세에서 한쪽 손을 천장으로 들어 올리며 시선을 따라갑니다.</li>
+      <li><strong>발목 회전</strong> — 앉아서 발목을 각 방향 10회씩 돌립니다. 풋살 누적 발목 피로 해소.</li>
+    </ol>
+  </section>
+
+  <section class="block" id="supplement">
+    <h2>풋살러 보완 운동 (주 2회, 화·금 저녁 15~20분)</h2>
+    <p>풋살은 폭발력·민첩성·짧은 가감속에 강하지만 러너에게 필요한 다음이 부족합니다:</p>
+    <ul>
+      <li><strong>단일 방향 지속 부하 적응</strong> — 풋살은 다방향 단속 부하, 러닝은 동일 방향 누적 부하</li>
+      <li><strong>후면 사슬 (햄스트링·둔근) 절대 강도</strong> — 풋살은 전면 사슬·내전근 편중</li>
+      <li><strong>종아리·발목 회복 탄성</strong> — 풋살 후 누적 피로가 러닝 경제성을 깎음</li>
+    </ul>
+    <table class="std">
+      <thead>
+        <tr><th>운동</th><th>세트/횟수</th><th>핵심 포인트</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>글루트 브릿지</td><td>3 × 15회</td><td>허리가 아닌 둔근으로 미는 감각.</td></tr>
+        <tr><td>싱글 레그 데드리프트 (체중)</td><td>3 × 10회/측</td><td>한 다리로 서서 상체와 반대 다리를 일직선으로. 후면 사슬 단측 강화 + 균형.</td></tr>
+        <tr><td>카프 레이즈</td><td>3 × 20회</td><td>1~2주 양발, 이후 한발로 전환. 정점에서 1초 유지.</td></tr>
+        <tr><td>플랭크</td><td>60초 × 3세트</td><td>팔꿈치~발끝 일직선, 엉덩이 처짐·돌출 금지.</td></tr>
+        <tr><td>사이드 플랭크</td><td>30초 × 3세트/측</td><td>측면 안정성, 풋살 회전 부하 보강.</td></tr>
+        <tr><td>워킹 런지</td><td>3 × 20보 (10/측)</td><td>무릎이 발끝을 넘지 않게, 뒤쪽 무릎 바닥 직전에서 멈춤.</td></tr>
+        <tr><td>발목 알파벳 운동</td><td>A~Z 한 번씩 양발</td><td>풋살 누적 발목 가동성 회복.</td></tr>
+      </tbody>
+    </table>
+    <p style="color: var(--text-muted); font-size: 13px;"><strong>진행 원칙.</strong> 화요일은 풋살이 없는 날, 금요일은 풋살이 있다면 풋살 후 15분으로 통합. 토요일 메인 세션 전날에는 강도를 절반으로 낮춥니다.</p>
+  </section>
+
+  <section class="block" id="race-week">
+    <h2>레이스 주간 프로토콜 (D-7 ~ D-Day)</h2>
+    <ul class="timeline">
+      <li><span class="when">D-7 (토 9/5)</span>마지막 점검 런 — 8km, Easy 5km + 페이스 3km @ 5:15. 시계 없이 체감만으로 5:15를 맞춰 보는 것을 권장.</li>
+      <li><span class="when">D-6 (일 9/6)</span>완전 휴식. 풋살도 금지.</li>
+      <li><span class="when">D-5 (월 9/7)</span>Easy 30분. 다리 풀기 수준, 6:15~6:30/km.</li>
+      <li><span class="when">D-4 (화 9/8)</span>휴식 또는 가벼운 산책 20~30분.</li>
+      <li><span class="when">D-3 (수 9/9)</span>20분 Easy + 스트라이드 4 × 100m. 신경근 자극 유지.</li>
+      <li><span class="when">D-2 (목 9/10)</span>휴식. <strong>카보 로딩 시작</strong> — 저녁 탄수화물 평소 +20%.</li>
+      <li><span class="when">D-1 (금 9/11)</span>휴식 또는 15분 조깅. <strong>음주 금지</strong>. 22~23시 취침, 최소 8시간. 복장·번호표·신발 미리 세팅.</li>
+      <li class="race"><span class="when">D-Day (토 9/12)</span>
+        <ul style="margin-top: 8px;">
+          <li><strong>기상</strong>: 레이스 3시간 전</li>
+          <li><strong>식사</strong> (출발 2~3시간 전, 600~800kcal): 옵션 A — 흰밥 한 공기 + 계란 2개 + 김 / 옵션 B — 바나나 1개 + 토스트 2장 + 꿀 1큰술 + 우유 200ml</li>
+          <li><strong>카페인</strong>: 출발 60분 전 200~250mg (평소 안 마시면 생략)</li>
+          <li><strong>워밍업 (출발 30분 전)</strong>: 조깅 10분 + 동적 스트레칭 5분 + 스트라이드 3 × 80m</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>레이스 페이스 전략</h3>
+    <table class="std">
+      <thead><tr><th>구간</th><th>페이스</th><th>전략</th></tr></thead>
+      <tbody>
+        <tr><td>1~2km</td><td>5:20/km</td><td>의도적 자제, 출발 흥분 컨트롤. 주변에 끌려가지 않기.</td></tr>
+        <tr><td>3~7km</td><td>5:15/km</td><td>목표 페이스 안착. 호흡 일정하게.</td></tr>
+        <tr><td>8~10km</td><td>5:10~5:13/km</td><td>잔존 힘 소진. 마지막 1km는 본인이 낼 수 있는 만큼.</td></tr>
+      </tbody>
+    </table>
+    <p>수분: 5km 지점 한 컵(약 150ml), 필요 시 8km 한 모금. 9월 12일 기온이 25도 이상이면 5km·8km 모두 섭취.</p>
+  </section>
+
+  <section class="block" id="nutrition">
+    <h2>영양·수분 기본 원칙</h2>
+    <h3>일상 식단 (체중 81kg 기준)</h3>
+    <ul>
+      <li><strong>탄수화물</strong>: 1kg당 5~6g → <strong>일 405~486g</strong>. 빌드·피크기에 부족하면 회복 지연, 다음 세션 질 저하.</li>
+      <li><strong>단백질</strong>: 1kg당 1.4~1.6g → <strong>일 113~130g</strong>. 끼니마다 25~35g 분산 섭취.</li>
+      <li><strong>지방</strong>: 총 칼로리의 25~30%. 견과류·올리브유·등푸른 생선 등 양질 위주.</li>
+    </ul>
+    <h3>훈련 전·후</h3>
+    <ul>
+      <li><strong>훈련 1~2시간 전</strong>: 탄수화물 위주 가벼운 식사 (바나나, 빵, 죽). 지방·식이섬유 최소화.</li>
+      <li><strong>훈련 후 30분 이내</strong>: 탄수화물 + 단백질 <strong>3:1 또는 4:1</strong> 비율
+        <ul>
+          <li>우유 + 시리얼</li>
+          <li>두유 + 바나나</li>
+          <li>닭가슴살 + 밥 한 공기</li>
+        </ul>
+      </li>
+      <li>60분 이상 세션 후에는 30분 내 1차 섭취 + 2시간 내 정식 식사.</li>
+    </ul>
+    <h3>알코올·카페인</h3>
+    <ul>
+      <li><strong>알코올</strong>: 하드 세션 24시간 전 금지. 토요일 메인 세션 → <strong>금요일 저녁 음주 피하기</strong>.</li>
+      <li><strong>카페인</strong>: 하드 세션 30~45분 전 <strong>3mg/kg (≈240mg)</strong> 효과 검증됨. <strong>단 레이스 당일 처음 쓰지 말 것</strong> — D-21 ~ D-7 사이 최소 2회 동일 용량으로 시뮬레이션 권장.</li>
+    </ul>
+  </section>
+
+  <section class="block" id="risk">
+    <h2>위험 신호·휴식 트리거</h2>
+    <div class="callout warn">
+      다음 중 <strong>1개 이상</strong>이면 평일 Easy 스킵, <strong>2개 이상</strong>이면 풋살도 휴식.
+    </div>
+    <ul>
+      <li>안정시 심박수 평소 <strong>+7bpm 이상</strong> (아침 기상 직후 침대에서 1분 측정 권장)</li>
+      <li>수면 <strong>5시간 이하</strong> (연속 2일)</li>
+      <li>같은 부위 통증 <strong>3일 연속</strong></li>
+      <li>식욕 저하 + 체중 <strong>1kg 이상</strong> 감소</li>
+      <li>의욕 저하·짜증 평소와 명확히 다름</li>
+      <li>같은 페이스에서 평소보다 <strong>+15초/km 이상</strong> 느려짐</li>
+    </ul>
+
+    <h3>오버트레이닝 누적 신호 (1주 이상 지속 시 <strong>1주 완전 휴식</strong>)</h3>
+    <ul>
+      <li>위 매트릭 <strong>3개 이상 동시 악화</strong></li>
+      <li>같은 부위 부상 반복 (정강이, 무릎, 발목)</li>
+      <li>평소 잘 자던 사람이 새벽에 깸 (코르티솔 리듬 붕괴 신호)</li>
+    </ul>
+
+    <h3>부상 발생 시 RICE 즉시 적용</h3>
+    <ul>
+      <li><strong>R</strong>est — 통증 유발 동작 즉시 중단</li>
+      <li><strong>I</strong>ce — 15~20분, 2~3시간 간격, 첫 48시간 집중</li>
+      <li><strong>C</strong>ompression — 탄성 붕대로 부종 억제</li>
+      <li><strong>E</strong>levation — 환부를 심장보다 높게</li>
+    </ul>
+    <div class="callout danger">
+      24~48시간 후에도 통증 지속 시 자가 판단 중단, <strong>정형외과 진료</strong>. 9월 레이스 데드라인이 있으므로 1주 이상의 보존적 치료 지연이 오히려 전체 시즌을 망칠 수 있습니다.
+    </div>
+  </section>
+
+  <footer class="foot">
+    설계: 2026-05-30 · 레이스: 2026-09-12 · 목표 10K 52:30 (5:15/km)
+  </footer>
+
+</div>
+</body>
+</html>
