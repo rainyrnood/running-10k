@@ -205,6 +205,7 @@
       <div class="dday" id="dday">D-—</div>
     </div>
     <div class="wk" id="wkline">—</div>
+    <div class="wk" id="wtline" style="opacity:0.82">—</div>
     <div class="prog-wrap">
       <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
       <div class="prog-label"><span id="progText">완료 0 / 46 세션</span><span id="progPct">0%</span></div>
@@ -337,6 +338,27 @@ function todayId(){ const n=new Date(); return fmtId(new Date(n.getFullYear(), n
 function mdLabel(dt){ return `${dt.getMonth()+1}/${dt.getDate()}`; }
 function daysBetween(aId,bId){ return Math.round((parseD(bId)-parseD(aId))/86400000); }
 
+/* ---------- 날짜별 목표 체중 (근거 기반) ----------
+   81kg→76kg, 주당 약 0.55kg(~0.66%/주). 8/3(Peak)부터 유지. */
+const WEIGHT_TARGETS = [
+  ['2026-05-30',81.0],['2026-06-01',80.8],['2026-06-08',80.2],['2026-06-15',79.6],
+  ['2026-06-22',79.0],['2026-06-29',78.4],['2026-07-06',77.8],['2026-07-13',77.3],
+  ['2026-07-20',76.8],['2026-07-27',76.3],['2026-08-03',76.0],['2026-09-12',76.0]
+];
+function targetWeight(id){
+  const t = parseD(id).getTime();
+  const A = WEIGHT_TARGETS.map(p=>[parseD(p[0]).getTime(), p[1]]);
+  if(t<=A[0][0]) return A[0][1];
+  if(t>=A[A.length-1][0]) return A[A.length-1][1];
+  for(let i=0;i<A.length-1;i++){
+    if(t>=A[i][0] && t<=A[i+1][0]){
+      const f=(t-A[i][0])/(A[i+1][0]-A[i][0]);
+      return A[i][1] + f*(A[i+1][1]-A[i][1]);
+    }
+  }
+  return A[A.length-1][1];
+}
+
 /* ---------- 모델 구성: 105일 ---------- */
 // 각 day: {id, dt, dow, wn, phase, color, kind, session?, counts}
 // kind: 'run' | 'futsal' | 'race' | 'rest' | 'restSupp'
@@ -420,6 +442,8 @@ function render(){
   let curW = WEEKS.find(w => { const s=parseD(w.start), e=addDays(s,6); const t=parseD(tId); return t>=s && t<=e; });
   if(!curW && !inW0){ curW = parseD(tId) < parseD(WEEKS[0].start) ? WEEKS[0] : WEEKS[WEEKS.length-1]; }
   $('#wkline').textContent = inW0 ? 'W0 · 적응 주말 · 본 훈련(6/1) 시작 전' : `W${curW.n} · ${curW.phase} · ${curW.focus}`;
+  const tw0 = targetWeight(tId);
+  $('#wtline').textContent = tw0!=null ? `오늘 목표 체중 ${tw0.toFixed(1)}kg` : '';
 
   // 주별 렌더
   weeksEl.innerHTML = '';
@@ -557,6 +581,9 @@ function dayCard(d, tId){
   plan.innerHTML = planHtml;
   body.appendChild(plan);
 
+  // 날짜별 체중 (목표 + 실제)
+  body.appendChild(weightField(d, s));
+
   if(d.kind==='run'||d.kind==='race'){
     body.appendChild(runInputs(d, s));
   } else if(d.kind==='futsal'){
@@ -571,6 +598,24 @@ function dayCard(d, tId){
 function field(label, inner){
   const f=document.createElement('div'); f.className='field';
   f.innerHTML = `<label>${label}</label>`; f.appendChild(inner); return f;
+}
+function weightField(d, s){
+  const tw = targetWeight(d.id);
+  const f=document.createElement('div'); f.className='field';
+  f.innerHTML = `<label>체중 (kg)${tw!=null?` · 목표 ${tw.toFixed(1)}kg`:''}</label>`;
+  const i=textInput(s,'weight','예: 79.5','number');
+  f.appendChild(i);
+  const diff=document.createElement('div'); diff.className='diff'; f.appendChild(diff);
+  function upd(){
+    const act=parseFloat(s.weight);
+    if(tw!=null && !isNaN(act)){
+      const dd=+(act-tw).toFixed(1);
+      diff.className='diff '+(dd<=0?'match':'over');
+      diff.innerHTML = `<span class="plan-ref">목표 ${tw.toFixed(1)}kg</span> · 실제 ${act}kg (${dd>0?'+':''}${dd}kg)`;
+    } else { diff.textContent=''; }
+  }
+  i.addEventListener('input', upd); upd();
+  return f;
 }
 function commit(card){ save(); refreshDoneMark(); }
 function refreshDoneMark(){
