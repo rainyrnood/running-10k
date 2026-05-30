@@ -207,7 +207,7 @@
     <div class="wk" id="wkline">—</div>
     <div class="prog-wrap">
       <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-      <div class="prog-label"><span id="progText">완료 0 / 45 세션</span><span id="progPct">0%</span></div>
+      <div class="prog-label"><span id="progText">완료 0 / 46 세션</span><span id="progPct">0%</span></div>
     </div>
   </header>
 
@@ -342,6 +342,11 @@ function daysBetween(aId,bId){ return Math.round((parseD(bId)-parseD(aId))/86400
 // kind: 'run' | 'futsal' | 'race' | 'rest' | 'restSupp'
 function buildDays(){
   const days = [];
+  // W0 적응 주말 (5/30 5k, 5/31 휴식) — 진행률에 포함
+  days.push({ id:'2026-05-30', dt:parseD('2026-05-30'), dow:5, wn:0, phase:'적응', color:'#6b7280', kind:'run', counts:true,
+    session:{tag:'easy', label:'Easy 러닝 (적응런)', dist:5, paceTxt:'6:30/km · 약 32분', paceSec:390, desc:'본 커리큘럼 시작 전 가볍게 몸 풀기. 페이스 신경쓰지 말고 5km 채우기.'} });
+  days.push({ id:'2026-05-31', dt:parseD('2026-05-31'), dow:6, wn:0, phase:'적응', color:'#6b7280', kind:'rest', counts:false,
+    session:{label:'완전 휴식', desc:'내일(6/1)부터 W1 시작. 푹 쉬기.'} });
   for(const w of WEEKS){
     const start = parseD(w.start);
     const fday = futsalDay(w.n); // '수' or '목'
@@ -361,18 +366,18 @@ function buildDays(){
           if(dow===2){ // W15 수: 러닝
             days.push({...base, kind:'run', counts:true, session:{...w.wed}});
           } else { // W15 목: 휴식
-            days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc:'레이스 주 — 가볍게. 보완 운동 15분 이내.'}});
+            days.push({...base, kind:'rest', counts:false, session:{label:'완전 휴식', desc:'레이스 주 — 완전 휴식.'}});
           }
         } else {
           const thisIsFutsal = (DOW[dow]===fday);
           if(thisIsFutsal){
             days.push({...base, kind:'futsal', counts:true, session:{label:'풋살 2시간', desc:w.futsal}});
           } else {
-            days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc:'풋살이 아닌 날. 보완 운동 15~20분 또는 휴식.'}});
+            days.push({...base, kind:'rest', counts:false, session:{label:'휴식', desc:'풋살이 아닌 날. 휴식.'}});
           }
         }
-      } else { // 화(1), 금(4): 휴식/보완
-        days.push({...base, kind:'restSupp', counts:false, session:{label:'휴식 / 보완 운동', desc: dow===1?'풋살 전날 컨디션 조정. 보완 운동 15~20분 또는 휴식.':'토요일 메인 세션 대비. 보완 운동 15분 또는 휴식.'}});
+      } else { // 화(1), 금(4): 휴식
+        days.push({...base, kind:'rest', counts:false, session:{label:'휴식', desc: dow===1?'풋살 전날 컨디션 조정. 가볍게 쉬기.':'토요일 메인 세션 대비. 충분히 휴식.'}});
       }
     }
   }
@@ -411,17 +416,20 @@ function render(){
   $('#progPct').textContent = pct+'%';
 
   // 현재 주차
+  const inW0 = (tId==='2026-05-30' || tId==='2026-05-31');
   let curW = WEEKS.find(w => { const s=parseD(w.start), e=addDays(s,6); const t=parseD(tId); return t>=s && t<=e; });
-  if(!curW){ curW = parseD(tId) < parseD(WEEKS[0].start) ? WEEKS[0] : WEEKS[WEEKS.length-1]; }
-  $('#wkline').textContent = `W${curW.n} · ${curW.phase} · ${curW.focus}`;
+  if(!curW && !inW0){ curW = parseD(tId) < parseD(WEEKS[0].start) ? WEEKS[0] : WEEKS[WEEKS.length-1]; }
+  $('#wkline').textContent = inW0 ? 'W0 · 적응 주말 · 본 훈련(6/1) 시작 전' : `W${curW.n} · ${curW.phase} · ${curW.focus}`;
 
   // 주별 렌더
   weeksEl.innerHTML = '';
+  renderW0(tId, inW0 || (parseD(tId) < parseD('2026-05-30')));
   for(const w of WEEKS){
     const wDays = ALL.filter(d=>d.wn===w.n);
-    const isCur = (w.n===curW.n);
+    const isCur = (!inW0 && curW && w.n===curW.n);
     const sec = document.createElement('section');
     sec.className = 'week' + (isCur?' open':' collapsed');
+    sec.dataset.wn = w.n;
     const start=parseD(w.start), end=addDays(start,6);
     const wd = countDone(wDays);
     sec.innerHTML = `
@@ -466,6 +474,35 @@ function render(){
     });
     weeksEl.appendChild(sec);
   }
+}
+
+function renderW0(tId, open){
+  const w0Days = ALL.filter(d=>d.wn===0);
+  if(!w0Days.length) return;
+  const sec = document.createElement('section');
+  sec.className = 'week' + (open?' open':' collapsed');
+  sec.dataset.wn = 0;
+  const wd = countDone(w0Days);
+  sec.innerHTML = `
+    <div class="week-head">
+      <span class="wbadge" style="background:#6b7280">W0</span>
+      <div class="whead-main">
+        <div class="wrange">5/30 ~ 5/31 <span style="color:var(--text-soft);font-weight:600;font-size:12px">적응 주말</span></div>
+        <div class="wfocus">본 커리큘럼 시작 전 몸풀기</div>
+        <div class="wmini">완료 ${wd.done}/${wd.total} · 풋살 없음</div>
+      </div>
+      <span class="wkm">5km</span>
+      <span class="wchev">▾</span>
+    </div>
+    <div class="week-body"></div>`;
+  const body = sec.querySelector('.week-body');
+  for(const d of w0Days) body.appendChild(dayCard(d, tId));
+  const nt = document.createElement('div');
+  nt.style.cssText='font-size:12px;color:#2c4866;background:#eef4fb;border:1px solid #b8d0e8;border-radius:8px;padding:9px 11px;margin-top:4px;line-height:1.5;';
+  nt.innerHTML = `<strong style="color:var(--accent)">노트.</strong> 5/30 가볍게 5km, 5/31 완전 휴식. 6/1(월)부터 W1 시작.`;
+  body.appendChild(nt);
+  sec.querySelector('.week-head').addEventListener('click', ()=>{ sec.classList.toggle('open'); sec.classList.toggle('collapsed'); });
+  weeksEl.appendChild(sec);
 }
 
 function tagFor(d){
@@ -660,11 +697,6 @@ function futsalInputs(d, s){
 
 function restInputs(d, s){
   const box=document.createDocumentFragment();
-  if(d.kind==='restSupp'){
-    const note=document.createElement('div'); note.className='supp-note';
-    note.textContent='보완 운동(선택): 글루트 브릿지·카프 레이즈·플랭크·발목 가동 등 15~20분.';
-    box.appendChild(note);
-  }
   const row=document.createElement('div'); row.className='row2';
   row.appendChild(field('안정시 심박수 (선택)', textInput(s,'hr','예: 52','number')));
   row.appendChild(field('수면 시간 (h)', textInput(s,'sleep','예: 7.5','number')));
@@ -688,10 +720,9 @@ $('#btnToday').addEventListener('click', ()=>{
   const tId=todayId();
   const today = ALL.find(d=>d.id===tId);
   // 해당 주 펼치고 오늘 카드로 스크롤
-  let targetW = today? today.wn : null;
-  if(targetW==null){ targetW = parseD(tId)<parseD(WEEKS[0].start)?1:15; }
-  document.querySelectorAll('.week').forEach((sec,idx)=>{
-    const open = (idx+1===targetW);
+  let targetW = today ? today.wn : (parseD(tId)<parseD('2026-05-30') ? 0 : 15);
+  document.querySelectorAll('.week').forEach(sec=>{
+    const open = (+sec.dataset.wn===targetW);
     sec.classList.toggle('open', open); sec.classList.toggle('collapsed', !open);
   });
   setTimeout(()=>{
