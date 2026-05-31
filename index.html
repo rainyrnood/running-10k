@@ -1095,15 +1095,15 @@ function drawPace(card){
   }
   targets.sort((a,b)=>a.x-b.x); actuals.sort((a,b)=>a.x-b.x);
 
-  const W=452,H=240,pad={l:46,r:14,t:14,b:26};
+  // 모든 종류 공통 고정 Y축(4:30~6:45) + 높이는 기존(240)의 1.5배(340)로 길게
+  const W=452,H=340,pad={l:46,r:14,t:14,b:26};
   const x0=parseD(TL_START).getTime(), x1=parseD(RACE_DATE).getTime();
-  let ys = targets.map(p=>p.y).concat(actuals.map(p=>p.y));
-  if(!ys.length) ys=[315];
-  const y1=Math.floor((Math.min(...ys)-10)/15)*15; // 빠름(위)
-  const y0=Math.ceil((Math.max(...ys)+10)/15)*15;   // 느림(아래)
-  const step = (y0-y1)>120 ? 30 : 15;
+  const y1=270; // 4:30 (빠름/위)
+  const y0=405; // 6:45 (느림/아래)
+  const step=15;
   const px=t=>pad.l+(t-x0)/(x1-x0)*(W-pad.l-pad.r);
-  const py=v=>(H-pad.b)-(v-y0)/(y1-y0)*(H-pad.t-pad.b);
+  const clampY=v=>Math.max(y1, Math.min(y0, v));
+  const py=v=>(H-pad.b)-(clampY(v)-y0)/(y1-y0)*(H-pad.t-pad.b);
 
   let g='';
   for(let v=Math.ceil(y1/step)*step; v<=y0; v+=step){ const yy=py(v); g+=`<line x1="${pad.l}" y1="${yy.toFixed(1)}" x2="${W-pad.r}" y2="${yy.toFixed(1)}" stroke="#eef0f2"/><text x="${pad.l-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a8f96">${fmtPaceTick(v)}</text>`; }
