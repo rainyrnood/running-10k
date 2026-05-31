@@ -316,22 +316,22 @@ const WEEKS = [
     note:'Base 마지막 주. 다음 주부터 강도 진입. 컨디션 좋으면 토요일 마지막 2km를 5:50으로 빌드업 가능.' },
   { n:5, phase:'Build', color:'#70AD47', start:'2026-06-29', focus:'강도 도입 준비 — M 페이스 첫 경험', km:23,
     mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'회복 페이스 엄격히 지키기. 풋살 후 다리 상태 점검.'},
-    sat:{tag:'tempo', label:'Long + M-pace', dist:12, paceTxt:'6:15 → 마지막 3km @ 5:30/km · 약 73분', paceSec:null, desc:'9km Easy 후 마지막 3km를 마라톤 페이스(5:30)로 마무리. 첫 페이스 변환 훈련.'},
+    sat:{tag:'tempo', label:'Long + M-pace', dist:12, paceTxt:'6:15 → 마지막 3km @ 5:30/km · 약 73분', paceSec:null, targetSec:330, desc:'9km Easy 후 마지막 3km를 마라톤 페이스(5:30)로 마무리. 첫 페이스 변환 훈련.'},
     futsal:'토요일 마라톤 페이스 구간 위해 무리한 전력질주는 줄이기.',
     note:'Build 진입. 장마 시작 가능 — 비 오면 우비 입고 진행, 천둥/번개는 강행 금지. 토요일 새벽 6시 출발 권장.' },
   { n:6, phase:'Build', color:'#70AD47', start:'2026-07-06', focus:'Tempo 첫 도입', km:24,
     mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'수/목 풋살 전 가볍게 다리 풀기.'},
-    sat:{tag:'tempo', label:'Tempo', dist:12, paceTxt:'WU 3km + 3km @ 5:30 + 3km Easy + 3km CD · 약 75분', paceSec:null, desc:'첫 템포 세션. 5:30 구간은 약간 숨찬 정도(말 한 문장 가능). 종료 후 워밍다운 필수.'},
+    sat:{tag:'tempo', label:'Tempo', dist:12, paceTxt:'WU 3km + 3km @ 5:30 + 3km Easy + 3km CD · 약 75분', paceSec:null, targetSec:330, desc:'첫 템포 세션. 5:30 구간은 약간 숨찬 정도(말 한 문장 가능). 종료 후 워밍다운 필수.'},
     futsal:'토요일 템포 대비 풋살 마지막 10분은 강도 낮추기.',
     note:'폭염 주의. 페이스 +15초/km 허용, 강도보다 시간·거리 유지 우선. 토요일 새벽 5시 30분 출발 고려. 전해질 음료 준비.' },
   { n:7, phase:'Build', color:'#70AD47', start:'2026-07-13', focus:'인터벌 첫 도입', km:25,
     mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'회복 모드. 토요일 인터벌 위해 다리 비축.'},
-    sat:{tag:'interval', label:'Intervals', dist:13, paceTxt:'WU 3km + 4×800m @ 4:45 (R 2분 jog) + CD 3km · 약 78분', paceSec:null, desc:'첫 인터벌. 4세트 모두 4:45 균일하게. 마지막 세트가 더 빠르면 안 됨(페이스 감각 훈련).'},
+    sat:{tag:'interval', label:'Intervals', dist:13, paceTxt:'WU 3km + 4×800m @ 4:45 (R 2분 jog) + CD 3km · 약 78분', paceSec:null, targetSec:285, desc:'첫 인터벌. 4세트 모두 4:45 균일하게. 마지막 세트가 더 빠르면 안 됨(페이스 감각 훈련).'},
     futsal:'수요일이면 좋음(토요일까지 회복 확보). 목요일이면 토요일 인터벌 전 발목·종아리 상태 체크.',
     note:'폭염 주의. 페이스 +15초/km 허용. 인터벌은 트랙 또는 평탄한 자전거도로 추천. 어지러움·메스꺼움 즉시 중단.' },
   { n:8, phase:'Build', color:'#70AD47', start:'2026-07-20', focus:'Tempo 거리 증가', km:27,
     mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'주간 최장 Easy. 폭염이면 60분 시간 우선으로.'},
-    sat:{tag:'tempo', label:'Split Tempo', dist:14, paceTxt:'WU 3km + 4km @ 5:25 + 2km Easy + 2km @ 5:25 + CD 3km · 약 87분', paceSec:null, desc:'분할 템포. 두 구간 모두 5:25 유지. 첫 구간 후 2km Easy로 호흡 회복 뒤 두 번째 구간.'},
+    sat:{tag:'tempo', label:'Split Tempo', dist:14, paceTxt:'WU 3km + 4km @ 5:25 + 2km Easy + 2km @ 5:25 + CD 3km · 약 87분', paceSec:null, targetSec:325, desc:'분할 템포. 두 구간 모두 5:25 유지. 첫 구간 후 2km Easy로 호흡 회복 뒤 두 번째 구간.'},
     futsal:'수분 보충 평소의 1.5배. 풋살장 도착 1시간 전부터 500ml 이상.',
     note:'폭염 절정. 7월 말 세종 한낮 35도 가능 — 토요일 무조건 새벽. 수면 7시간 이상 사수.' },
   { n:9, phase:'Build (컷백)', color:'#70AD47', start:'2026-07-27', focus:'컷백 주 — 회복 우선', km:20,
@@ -341,27 +341,27 @@ const WEEKS = [
     note:'컷백 주. 약 25% 볼륨 감소. 누적 피로 털고 Peak 진입 준비. 잠·영양·마사지로 회복 극대화.' },
   { n:10, phase:'Peak', color:'#ED7D31', start:'2026-08-03', focus:'Race Pace 첫 도입', km:26,
     mon:{tag:'easy', label:'Easy 러닝', dist:7, paceTxt:'6:15/km · 약 44분', paceSec:375, desc:'회복 페이스. 토요일 RP 세션 대비.'},
-    sat:{tag:'tempo', label:'Race Pace', dist:14, paceTxt:'WU 3km + 5km @ 5:15 + 3km Easy + CD 3km · 약 85분', paceSec:null, desc:'목표 페이스 5:15 첫 체험. 5km 완주 후 호흡·다리 상태 기록. 무리해서 더 빠르게 X.'},
+    sat:{tag:'tempo', label:'Race Pace', dist:14, paceTxt:'WU 3km + 5km @ 5:15 + 3km Easy + CD 3km · 약 85분', paceSec:null, targetSec:315, desc:'목표 페이스 5:15 첫 체험. 5km 완주 후 호흡·다리 상태 기록. 무리해서 더 빠르게 X.'},
     futsal:'토요일 RP까지 48시간 이상 확보가 이상적.',
     note:'Peak 진입. 5:15가 어떻게 느껴지는지 몸으로 익히는 주차. 끝나고 회복 식사·낮잠. 폭염 시 +15초/km 허용.' },
   { n:11, phase:'Peak', color:'#ED7D31', start:'2026-08-10', focus:'Threshold 거리 증가', km:28,
     mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'주간 가장 긴 Easy. 폼 점검(케이던스 175-180 목표).'},
-    sat:{tag:'tempo', label:'Threshold', dist:15, paceTxt:'WU 3km + 5km @ 5:05 + 4km Easy + CD 3km · 약 90분', paceSec:null, desc:'5km Threshold 1회. 5:05는 1시간 유지 가능 강도(말 짧게만). 끝까지 페이스 균일하게.'},
+    sat:{tag:'tempo', label:'Threshold', dist:15, paceTxt:'WU 3km + 5km @ 5:05 + 4km Easy + CD 3km · 약 90분', paceSec:null, targetSec:305, desc:'5km Threshold 1회. 5:05는 1시간 유지 가능 강도(말 짧게만). 끝까지 페이스 균일하게.'},
     futsal:'평소대로. 발목 테이핑 권장.',
     note:'열대야 대응. 수면 질 떨어질 수 있음. 침실 26도 유지. 폭염 시 +15초/km 허용.' },
   { n:12, phase:'Peak', color:'#ED7D31', start:'2026-08-17', focus:'Interval 강화 — 5km 효율 향상', km:29,
     mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'수/목 풋살 + 토요일 인터벌 사이 회복 균형.'},
-    sat:{tag:'interval', label:'Intervals', dist:14, paceTxt:'WU 3km + 5×1km @ 4:40 (R 90초 jog) + CD 3km · 약 80분', paceSec:null, desc:'Peak 인터벌 핵심. 5세트 모두 4:40 균일 — 첫 2세트 빠르면 마지막 무너짐. 휴식 90초 jog 엄수.'},
+    sat:{tag:'interval', label:'Intervals', dist:14, paceTxt:'WU 3km + 5×1km @ 4:40 (R 90초 jog) + CD 3km · 약 80분', paceSec:null, targetSec:280, desc:'Peak 인터벌 핵심. 5세트 모두 4:40 균일 — 첫 2세트 빠르면 마지막 무너짐. 휴식 90초 jog 엄수.'},
     futsal:'수요일 권장. 토요일 인터벌이 핵심이라 회복 길수록 유리.',
     note:'핵심 주차. 이번 인터벌 잘 해내면 5:15 충분히 가능. 끝나고 단백질 30g + 탄수 60g 30분 이내 섭취.' },
   { n:13, phase:'Peak', color:'#ED7D31', start:'2026-08-24', focus:'최고 볼륨 주 — 레이스 시뮬레이션', km:30,
     mon:{tag:'easy', label:'Easy 러닝', dist:8, paceTxt:'6:15/km · 약 50분', paceSec:375, desc:'마지막 고볼륨 Easy. 다리 상태 매일 모니터링.'},
-    sat:{tag:'race', label:'Race Sim', dist:13, paceTxt:'WU 2km + 8km @ 5:15 + CD 3km · 약 75분', paceSec:null, desc:'마지막 하드 세션. 8km @ 5:15 — 레이스 80% 시뮬. 페이스 균일, 마지막 1km 약간 빌드업 시도.'},
+    sat:{tag:'race', label:'Race Sim', dist:13, paceTxt:'WU 2km + 8km @ 5:15 + CD 3km · 약 75분', paceSec:null, targetSec:315, desc:'마지막 하드 세션. 8km @ 5:15 — 레이스 80% 시뮬. 페이스 균일, 마지막 1km 약간 빌드업 시도.'},
     futsal:'수요일 권장. 토요일 시뮬레이션 위해 무릎·발목 무리 X.',
     note:'피크 마지막. 8km @ 5:15 잘 나오면 본 레이스 52:30 완성. 다음 주부터 테이퍼 — 강도/볼륨 더 늘리지 않기.' },
   { n:14, phase:'Taper', color:'#A5A5A5', start:'2026-08-31', focus:'볼륨 40% 감소 — 강도는 유지', km:18,
     mon:{tag:'easy', label:'Easy 러닝', dist:6, paceTxt:'6:20/km · 약 38분', paceSec:380, desc:'짧고 가볍게. 다리에 신선함 채우기.'},
-    sat:{tag:'tempo', label:'Short Tempo', dist:8, paceTxt:'WU 2km + 3km @ 5:15 + CD 3km · 약 48분', paceSec:null, desc:'짧지만 날카로운 세션. 3km @ 5:15로 레이스 페이스 감각 유지. 끝나고 다리 여유 있어야 정상.'},
+    sat:{tag:'tempo', label:'Short Tempo', dist:8, paceTxt:'WU 2km + 3km @ 5:15 + CD 3km · 약 48분', paceSec:null, targetSec:315, desc:'짧지만 날카로운 세션. 3km @ 5:15로 레이스 페이스 감각 유지. 끝나고 다리 여유 있어야 정상.'},
     futsal:'강도↓. 기술 위주, 전력질주 자제. 슬라이딩·태클 절대 금지. 부상 위험 최소화.',
     note:'테이퍼 슬럼프 주의. 다리 무겁고 페이스 안 나올 수 있음 — 정상. 다음 주에 풀림. 새 음식·신발·루트 시도 금지.' },
   { n:15, phase:'Race Week', color:'#C00000', start:'2026-09-07', focus:'레이스 주 — 컨디션 정점 맞추기', km:12,
@@ -474,6 +474,13 @@ function isDone(d){
   if(d.kind==='run'||d.kind==='race') return !!s.cMain;
   if(d.kind==='futsal') return !!s.cMain;
   return false;
+}
+// 세션의 목표 페이스(초). 단순 세션은 paceSec, 복합 세션은 메인 세트 목표 targetSec.
+function sessionTargetSec(d){
+  if(!d.session) return null;
+  if(d.session.paceSec!=null) return d.session.paceSec;
+  if(d.session.targetSec!=null) return d.session.targetSec;
+  return null;
 }
 
 /* ---------- 렌더 ---------- */
@@ -779,8 +786,15 @@ function runInputs(d, s){
   const dEl=textInput(s,'dist','예: 5.2','number');
   const distField=field('실제 거리 (km)', dEl);
   const distDiff=document.createElement('div'); distDiff.className='diff'; distField.appendChild(distDiff);
+  const isComplex = d.session.paceSec==null && sessionTargetSec(d)!=null; // Tempo/Interval 등
   const pEl=textInput(s,'pace','예: 5:20');
-  const paceField=field('실제 평균 페이스 (m:ss)', pEl);
+  const paceLabel = isComplex ? '본 구간(메인 세트) 평균 페이스 (m:ss)' : '실제 평균 페이스 (m:ss)';
+  const paceField=field(paceLabel, pEl);
+  if(isComplex){
+    const hint=document.createElement('div'); hint.style.cssText='font-size:11px;color:var(--text-soft);margin-top:4px;';
+    hint.textContent='워밍업·쿨다운 제외, 본 구간(예: 5:30 구간) 평균으로 입력';
+    paceField.appendChild(hint);
+  }
   const paceDiff=document.createElement('div'); paceDiff.className='diff'; paceField.appendChild(paceDiff);
   row.appendChild(distField); row.appendChild(paceField);
   det.push(row);
@@ -795,13 +809,13 @@ function runInputs(d, s){
     } else { distDiff.textContent=''; }
   }
   function updPace(){
-    const planSec=d.session.paceSec; const actSec=parsePace(s.pace);
+    const planSec=sessionTargetSec(d); const actSec=parsePace(s.pace);
     if(planSec && actSec){
       const diff=actSec-planSec;
-      const cls = diff===0?'match':'over';
+      const cls = diff<=0?'match':'over'; // 목표보다 빠르거나 같으면 달성
       paceDiff.className='diff '+cls;
       const planTxt=`${Math.floor(planSec/60)}:${String(planSec%60).padStart(2,'0')}`;
-      paceDiff.innerHTML = `<span class="plan-ref">계획 ${planTxt}</span> · 실제 ${s.pace} (${fmtSec(diff)})`;
+      paceDiff.innerHTML = `<span class="plan-ref">목표 ${planTxt}</span> · 실제 ${s.pace} (${fmtSec(diff)})`;
     } else { paceDiff.textContent=''; }
   }
   dEl.addEventListener('input', updDist); pEl.addEventListener('input', updPace);
@@ -1038,18 +1052,20 @@ function weightChartCard(){
 
 function paceChartCard(){
   const card=document.createElement('div'); card.className='chart-card';
-  const pts=[];
+  const targets=[], actuals=[];
   for(const d of ALL){
     if(d.kind!=='run' && d.kind!=='race') continue;
-    const s=state.days[d.id]; if(!s) continue;
-    const sec=parsePace(s.pace); if(sec) pts.push({x:d.dt.getTime(), y:sec, tag:(d.session.tag||'easy')});
+    const tag = d.session.tag||'easy';
+    const tg = sessionTargetSec(d);
+    if(tg!=null) targets.push({x:d.dt.getTime(), y:tg, tag});
+    const s=state.days[d.id];
+    if(s){ const a=parsePace(s.pace); if(a) actuals.push({x:d.dt.getTime(), y:a, tag}); }
   }
-  pts.sort((a,b)=>a.x-b.x);
 
   const W=452,H=240,pad={l:46,r:14,t:14,b:26};
   const x0=parseD(TL_START).getTime(), x1=parseD(RACE_DATE).getTime();
   const GOAL=315;
-  const ys = pts.map(p=>p.y).concat([GOAL]);
+  const ys = targets.map(p=>p.y).concat(actuals.map(p=>p.y)).concat([GOAL]);
   const y1=Math.floor((Math.min(...ys)-10)/30)*30; // 빠름(위)
   const y0=Math.ceil((Math.max(...ys)+10)/30)*30;  // 느림(아래)
   const px=t=>pad.l+(t-x0)/(x1-x0)*(W-pad.l-pad.r);
@@ -1058,16 +1074,29 @@ function paceChartCard(){
   let g='';
   for(let v=y1; v<=y0; v+=30){ const yy=py(v); g+=`<line x1="${pad.l}" y1="${yy.toFixed(1)}" x2="${W-pad.r}" y2="${yy.toFixed(1)}" stroke="#eef0f2"/><text x="${pad.l-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a8f96">${fmtPaceTick(v)}</text>`; }
   for(const mm of MONTH_TICKS){ const xx=px(parseD(mm).getTime()); g+=`<line x1="${xx.toFixed(1)}" y1="${pad.t}" x2="${xx.toFixed(1)}" y2="${H-pad.b}" stroke="#f3f4f6"/><text x="${xx.toFixed(1)}" y="${H-pad.b+14}" text-anchor="middle" font-size="9" fill="#8a8f96">${parseInt(mm.slice(5,7))}월</text>`; }
-  const gy=py(GOAL); g+=`<line x1="${pad.l}" y1="${gy.toFixed(1)}" x2="${W-pad.r}" y2="${gy.toFixed(1)}" stroke="#C00000" stroke-width="1.5" stroke-dasharray="5 3"/>`;
-  for(const p of pts) g+=`<circle cx="${px(p.x).toFixed(1)}" cy="${py(p.y).toFixed(1)}" r="3.4" fill="${TAG_COLOR[p.tag]||'#5a6068'}"/>`;
+  // 레이스 목표 기준선
+  const gy=py(GOAL); g+=`<line x1="${pad.l}" y1="${gy.toFixed(1)}" x2="${W-pad.r}" y2="${gy.toFixed(1)}" stroke="#C00000" stroke-width="1.3" stroke-dasharray="5 3"/><text x="${W-pad.r}" y="${(gy-4).toFixed(1)}" text-anchor="end" font-size="9" fill="#C00000">레이스 5:15</text>`;
+  // 같은 종류끼리 목표선 연결 (진행 흐름 — 점점 빨라짐)
+  const byTag={};
+  for(const t of targets){ (byTag[t.tag]=byTag[t.tag]||[]).push(t); }
+  for(const tag in byTag){
+    const arr=byTag[tag].slice().sort((a,b)=>a.x-b.x);
+    if(arr.length>1) g+=`<polyline fill="none" stroke="${TAG_COLOR[tag]||'#5a6068'}" stroke-width="1" opacity="0.4" points="${arr.map(p=>px(p.x).toFixed(1)+','+py(p.y).toFixed(1)).join(' ')}"/>`;
+  }
+  // 목표 = 빈 마커
+  for(const t of targets) g+=`<circle cx="${px(t.x).toFixed(1)}" cy="${py(t.y).toFixed(1)}" r="3" fill="#fff" stroke="${TAG_COLOR[t.tag]||'#5a6068'}" stroke-width="1.6"/>`;
+  // 실제 = 채운 점
+  for(const a of actuals) g+=`<circle cx="${px(a.x).toFixed(1)}" cy="${py(a.y).toFixed(1)}" r="3.6" fill="${TAG_COLOR[a.tag]||'#5a6068'}"/>`;
   const svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>`;
 
-  const used=[...new Set(pts.map(p=>p.tag))];
+  const used=[...new Set(targets.map(p=>p.tag))];
   const legendTags = used.length ? used : ['easy','tempo','interval'];
-  const legend = legendTags.map(t=>`<span class="lg"><span class="sw" style="background:${TAG_COLOR[t]||'#5a6068'}"></span>${TAG_LABEL[t]||t}</span>`).join('')
-    + `<span class="lg"><span class="sw" style="background:#C00000"></span>목표 5:15</span>`;
-  const sub = pts.length ? '세션별 실제 평균 페이스 · 위로 갈수록 빠름' : '로그에서 러닝 페이스를 입력하면 그려집니다';
-  card.innerHTML = `<h3>페이스 추이</h3><div class="chart-sub">${sub}</div>${svg}<div class="chart-legend">${legend}</div>`;
+  const typeLeg = legendTags.map(t=>`<span class="lg"><span class="sw" style="background:${TAG_COLOR[t]||'#5a6068'}"></span>${TAG_LABEL[t]||t}</span>`).join('');
+  const markLeg = `<span class="lg"><span class="sw" style="background:#5a6068"></span>실제</span>`
+    + `<span class="lg"><span class="sw" style="background:#fff;border:1.6px solid #5a6068"></span>그날 목표</span>`;
+  const sub = actuals.length ? '채운 점 = 실제 · 빈 마커 = 그날 목표 · 위로 갈수록 빠름'
+                             : '빈 마커 = 세션별 목표(점점 빨라짐) · 페이스를 입력하면 실제 점이 채워집니다';
+  card.innerHTML = `<h3>페이스 추이</h3><div class="chart-sub">${sub}</div>${svg}<div class="chart-legend">${typeLeg}${markLeg}</div>`;
   return card;
 }
 
