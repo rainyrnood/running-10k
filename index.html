@@ -239,6 +239,13 @@
   .chart-legend .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
   .chart-stat { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
   .chart-stat b { color: var(--text); }
+  .chart-seg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .chart-seg button {
+    appearance: none; border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-muted); border-radius: 7px; padding: 6px 12px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .chart-seg button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 </style>
 </head>
 <body>
@@ -1002,6 +1009,8 @@ const TAG_COLOR = { easy:'#2256a0', long:'#3d6b1b', tempo:'#984500', interval:'#
 const TAG_LABEL = { easy:'Easy', long:'Long', tempo:'Tempo', interval:'Interval', race:'Race' };
 const TL_START = '2026-05-30';
 const MONTH_TICKS = ['2026-06-01','2026-07-01','2026-08-01','2026-09-01'];
+const TAG_ORDER = ['easy','long','tempo','interval','race'];
+let paceTag = null; // 페이스 차트에서 선택된 세션 종류
 
 function fmtPaceTick(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return `${m}:${String(s).padStart(2,'0')}`; }
 
@@ -1052,52 +1061,75 @@ function weightChartCard(){
 
 function paceChartCard(){
   const card=document.createElement('div'); card.className='chart-card';
+  const present = [...new Set(ALL.filter(d=>d.kind==='run'||d.kind==='race').map(d=>d.session.tag||'easy'))];
+  const tags = TAG_ORDER.filter(t=>present.includes(t));
+  if(paceTag==null || !tags.includes(paceTag)) paceTag = tags[0] || 'easy';
+
+  card.innerHTML = `<h3>페이스 추이</h3>
+    <div class="chart-sub" id="paceSub"></div>
+    <div class="chart-seg" id="paceSeg"></div>
+    <div id="paceSvg"></div>
+    <div class="chart-legend" id="paceLeg"></div>`;
+  const seg=card.querySelector('#paceSeg');
+  tags.forEach(t=>{
+    const b=document.createElement('button'); b.textContent=TAG_LABEL[t]||t; b.dataset.tag=t;
+    b.addEventListener('click', ()=>{ paceTag=t; drawPace(card); });
+    seg.appendChild(b);
+  });
+  drawPace(card);
+  return card;
+}
+
+// 선택된 종류(paceTag)만 그림. 종류 전환 시 SVG/범례/안내만 다시 그림.
+function drawPace(card){
+  const tag = paceTag;
+  const color = TAG_COLOR[tag] || '#5a6068';
+  card.querySelectorAll('#paceSeg button').forEach(b=> b.classList.toggle('active', b.dataset.tag===tag));
+
   const targets=[], actuals=[];
   for(const d of ALL){
     if(d.kind!=='run' && d.kind!=='race') continue;
-    const tag = d.session.tag||'easy';
-    const tg = sessionTargetSec(d);
-    if(tg!=null) targets.push({x:d.dt.getTime(), y:tg, tag});
-    const s=state.days[d.id];
-    if(s){ const a=parsePace(s.pace); if(a) actuals.push({x:d.dt.getTime(), y:a, tag}); }
+    if((d.session.tag||'easy')!==tag) continue;
+    const tg=sessionTargetSec(d); if(tg!=null) targets.push({x:d.dt.getTime(), y:tg});
+    const s=state.days[d.id]; if(s){ const a=parsePace(s.pace); if(a) actuals.push({x:d.dt.getTime(), y:a}); }
   }
+  targets.sort((a,b)=>a.x-b.x); actuals.sort((a,b)=>a.x-b.x);
 
   const W=452,H=240,pad={l:46,r:14,t:14,b:26};
   const x0=parseD(TL_START).getTime(), x1=parseD(RACE_DATE).getTime();
-  const GOAL=315;
-  const ys = targets.map(p=>p.y).concat(actuals.map(p=>p.y)).concat([GOAL]);
-  const y1=Math.floor((Math.min(...ys)-10)/30)*30; // 빠름(위)
-  const y0=Math.ceil((Math.max(...ys)+10)/30)*30;  // 느림(아래)
+  let ys = targets.map(p=>p.y).concat(actuals.map(p=>p.y));
+  if(!ys.length) ys=[315];
+  const y1=Math.floor((Math.min(...ys)-10)/15)*15; // 빠름(위)
+  const y0=Math.ceil((Math.max(...ys)+10)/15)*15;   // 느림(아래)
+  const step = (y0-y1)>120 ? 30 : 15;
   const px=t=>pad.l+(t-x0)/(x1-x0)*(W-pad.l-pad.r);
   const py=v=>(H-pad.b)-(v-y0)/(y1-y0)*(H-pad.t-pad.b);
 
   let g='';
-  for(let v=y1; v<=y0; v+=30){ const yy=py(v); g+=`<line x1="${pad.l}" y1="${yy.toFixed(1)}" x2="${W-pad.r}" y2="${yy.toFixed(1)}" stroke="#eef0f2"/><text x="${pad.l-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a8f96">${fmtPaceTick(v)}</text>`; }
+  for(let v=Math.ceil(y1/step)*step; v<=y0; v+=step){ const yy=py(v); g+=`<line x1="${pad.l}" y1="${yy.toFixed(1)}" x2="${W-pad.r}" y2="${yy.toFixed(1)}" stroke="#eef0f2"/><text x="${pad.l-6}" y="${(yy+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a8f96">${fmtPaceTick(v)}</text>`; }
   for(const mm of MONTH_TICKS){ const xx=px(parseD(mm).getTime()); g+=`<line x1="${xx.toFixed(1)}" y1="${pad.t}" x2="${xx.toFixed(1)}" y2="${H-pad.b}" stroke="#f3f4f6"/><text x="${xx.toFixed(1)}" y="${H-pad.b+14}" text-anchor="middle" font-size="9" fill="#8a8f96">${parseInt(mm.slice(5,7))}월</text>`; }
-  // 레이스 목표 기준선
-  const gy=py(GOAL); g+=`<line x1="${pad.l}" y1="${gy.toFixed(1)}" x2="${W-pad.r}" y2="${gy.toFixed(1)}" stroke="#C00000" stroke-width="1.3" stroke-dasharray="5 3"/><text x="${W-pad.r}" y="${(gy-4).toFixed(1)}" text-anchor="end" font-size="9" fill="#C00000">레이스 5:15</text>`;
-  // 같은 종류끼리 목표선 연결 (진행 흐름 — 점점 빨라짐)
-  const byTag={};
-  for(const t of targets){ (byTag[t.tag]=byTag[t.tag]||[]).push(t); }
-  for(const tag in byTag){
-    const arr=byTag[tag].slice().sort((a,b)=>a.x-b.x);
-    if(arr.length>1) g+=`<polyline fill="none" stroke="${TAG_COLOR[tag]||'#5a6068'}" stroke-width="1" opacity="0.4" points="${arr.map(p=>px(p.x).toFixed(1)+','+py(p.y).toFixed(1)).join(' ')}"/>`;
-  }
+  // 레이스 5:15 기준선 (해당 종류 스케일 안에 들어올 때만)
+  const showGoal = (315>=y1 && 315<=y0);
+  if(showGoal){ const gy=py(315); g+=`<line x1="${pad.l}" y1="${gy.toFixed(1)}" x2="${W-pad.r}" y2="${gy.toFixed(1)}" stroke="#C00000" stroke-width="1.3" stroke-dasharray="5 3"/><text x="${W-pad.r}" y="${(gy-4).toFixed(1)}" text-anchor="end" font-size="9" fill="#C00000">레이스 5:15</text>`; }
+  // 목표선(빈 마커 연결) — 점점 빨라지는 흐름
+  if(targets.length>1) g+=`<polyline fill="none" stroke="${color}" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.55" points="${targets.map(p=>px(p.x).toFixed(1)+','+py(p.y).toFixed(1)).join(' ')}"/>`;
+  // 실제선(채운 점 연결)
+  if(actuals.length>1) g+=`<polyline fill="none" stroke="${color}" stroke-width="2" points="${actuals.map(p=>px(p.x).toFixed(1)+','+py(p.y).toFixed(1)).join(' ')}"/>`;
   // 목표 = 빈 마커
-  for(const t of targets) g+=`<circle cx="${px(t.x).toFixed(1)}" cy="${py(t.y).toFixed(1)}" r="3" fill="#fff" stroke="${TAG_COLOR[t.tag]||'#5a6068'}" stroke-width="1.6"/>`;
+  for(const t of targets) g+=`<circle cx="${px(t.x).toFixed(1)}" cy="${py(t.y).toFixed(1)}" r="3.2" fill="#fff" stroke="${color}" stroke-width="1.6"/>`;
   // 실제 = 채운 점
-  for(const a of actuals) g+=`<circle cx="${px(a.x).toFixed(1)}" cy="${py(a.y).toFixed(1)}" r="3.6" fill="${TAG_COLOR[a.tag]||'#5a6068'}"/>`;
+  for(const a of actuals) g+=`<circle cx="${px(a.x).toFixed(1)}" cy="${py(a.y).toFixed(1)}" r="3.6" fill="${color}"/>`;
   const svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${g}</svg>`;
+  card.querySelector('#paceSvg').innerHTML = svg;
 
-  const used=[...new Set(targets.map(p=>p.tag))];
-  const legendTags = used.length ? used : ['easy','tempo','interval'];
-  const typeLeg = legendTags.map(t=>`<span class="lg"><span class="sw" style="background:${TAG_COLOR[t]||'#5a6068'}"></span>${TAG_LABEL[t]||t}</span>`).join('');
-  const markLeg = `<span class="lg"><span class="sw" style="background:#5a6068"></span>실제</span>`
-    + `<span class="lg"><span class="sw" style="background:#fff;border:1.6px solid #5a6068"></span>그날 목표</span>`;
-  const sub = actuals.length ? '채운 점 = 실제 · 빈 마커 = 그날 목표 · 위로 갈수록 빠름'
-                             : '빈 마커 = 세션별 목표(점점 빨라짐) · 페이스를 입력하면 실제 점이 채워집니다';
-  card.innerHTML = `<h3>페이스 추이</h3><div class="chart-sub">${sub}</div>${svg}<div class="chart-legend">${typeLeg}${markLeg}</div>`;
-  return card;
+  const leg = `<span class="lg"><span class="sw" style="background:${color}"></span>실제</span>`
+    + `<span class="lg"><span class="sw" style="background:#fff;border:1.6px solid ${color}"></span>목표</span>`
+    + (showGoal ? `<span class="lg"><span class="sw" style="background:#C00000"></span>레이스 5:15</span>` : '');
+  card.querySelector('#paceLeg').innerHTML = leg;
+  const name = TAG_LABEL[tag] || tag;
+  card.querySelector('#paceSub').textContent = actuals.length
+    ? `${name} · 채운 점 = 실제 / 빈 마커 = 목표 · 위로 갈수록 빠름`
+    : `${name} · 빈 마커 = 목표 · 페이스를 입력하면 실제 점이 채워집니다`;
 }
 
 render();
