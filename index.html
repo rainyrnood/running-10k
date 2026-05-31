@@ -194,6 +194,41 @@
     opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 100; max-width: 88%;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab {
+    flex: 1; appearance: none; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--text-muted);
+    border-radius: 9px; padding: 9px 0; font-size: 13px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* 상세 입력 접기 (간소화) */
+  .details-toggle {
+    appearance: none; width: 100%; margin-bottom: 11px;
+    background: var(--surface-2); border: 1px dashed var(--border-strong);
+    color: var(--text-muted); border-radius: 8px; padding: 8px 10px;
+    font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .details-panel { display: none; }
+  .details-panel.open { display: block; }
+
+  /* 진행 탭 */
+  .prog-summary {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px;
+  }
+  .pgroup { margin-bottom: 16px; }
+  .pgroup-head { display: flex; align-items: center; gap: 8px; margin: 0 2px 8px; }
+  .pgroup-head .pg-range { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .prow { border: 1px solid var(--border); border-radius: 9px; padding: 8px 11px; margin-bottom: 7px; background: var(--surface); }
+  .prow.done { border-color: #9ccfa3; background: #f6fbf6; }
+  .prow-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .prow-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prow-line { font-size: 12.5px; color: var(--text-muted); display: flex; gap: 7px; line-height: 1.5; }
+  .prow-line .pl-k { color: var(--text-soft); min-width: 32px; flex-shrink: 0; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -212,14 +247,23 @@
     </div>
   </header>
 
-  <div class="toolbar">
-    <button class="btn" id="btnToday">오늘로</button>
-    <button class="btn" id="btnExport">백업 내보내기</button>
-    <button class="btn" id="btnImport">가져오기</button>
-    <button class="btn danger" id="btnReset">초기화</button>
+  <div class="tabs">
+    <button class="tab active" id="tabLog">로그</button>
+    <button class="tab" id="tabProg">진행</button>
   </div>
 
-  <div id="weeks"></div>
+  <div id="view-log">
+    <div class="toolbar">
+      <button class="btn" id="btnToday">오늘로</button>
+      <button class="btn" id="btnExport">백업 내보내기</button>
+      <button class="btn" id="btnImport">가져오기</button>
+      <button class="btn danger" id="btnReset">초기화</button>
+    </div>
+
+    <div id="weeks"></div>
+  </div>
+
+  <div id="view-progress" style="display:none"></div>
 
   <footer>
     데이터는 이 브라우저(localStorage)에만 저장됩니다 · 인터넷 없어도 동작<br>
@@ -425,6 +469,9 @@ const weeksEl = $('#weeks');
 let ALL = [];
 
 function render(){
+  // 재렌더 시 펼쳐둔 주의 열림 상태 보존 (풋살 요일 선택 등으로 화면이 튀지 않게)
+  const prevOpen = new Set([...weeksEl.querySelectorAll('.week.open')].map(el=>el.dataset.wn));
+  const hadRendered = weeksEl.children.length>0;
   ALL = buildDays();
   const tId = todayId();
 
@@ -447,12 +494,14 @@ function render(){
 
   // 주별 렌더
   weeksEl.innerHTML = '';
-  renderW0(tId, inW0 || (parseD(tId) < parseD('2026-05-30')));
+  const w0Open = hadRendered ? prevOpen.has('0') : (inW0 || (parseD(tId) < parseD('2026-05-30')));
+  renderW0(tId, w0Open);
   for(const w of WEEKS){
     const wDays = ALL.filter(d=>d.wn===w.n);
     const isCur = (!inW0 && curW && w.n===curW.n);
+    const open = hadRendered ? prevOpen.has(String(w.n)) : isCur;
     const sec = document.createElement('section');
-    sec.className = 'week' + (isCur?' open':' collapsed');
+    sec.className = 'week' + (open?' open':' collapsed');
     sec.dataset.wn = w.n;
     const start=parseD(w.start), end=addDays(start,6);
     const wd = countDone(wDays);
@@ -548,7 +597,12 @@ function dayCard(d, tId){
   const tag = tagFor(d);
   const distTxt = d.session.dist ? `${d.session.dist}km` : (d.kind==='futsal'?'~5km':'');
   const summary = restish ? d.session.label : `${d.session.label}${distTxt?' · '+distTxt:''}`;
-  const doneMark = d.counts ? `<span class="dcheck ${isDone(d)?'done':''}">${isDone(d)?'✔':'○'}</span>` : '';
+  let doneMark = '';
+  if(d.counts){
+    doneMark = `<span class="dcheck ${isDone(d)?'done':''}">${isDone(d)?'✔':'○'}</span>`;
+  } else if(restish){ // 휴식일: 쉼 확인 여부 표시 (진행률에는 미포함)
+    doneMark = `<span class="dcheck ${s.rested?'done':''}">${s.rested?'✔':'○'}</span>`;
+  }
 
   card.innerHTML = `
     <div class="day-head">
@@ -580,9 +634,6 @@ function dayCard(d, tId){
   if(d.session.desc) planHtml += `<div class="pl-desc">${d.session.desc}</div>`;
   plan.innerHTML = planHtml;
   body.appendChild(plan);
-
-  // 날짜별 체중 (목표 + 실제)
-  body.appendChild(weightField(d, s));
 
   if(d.kind==='run'||d.kind==='race'){
     body.appendChild(runInputs(d, s));
@@ -678,10 +729,26 @@ function parsePace(txt){ // "5:20" -> 320초
 }
 function fmtSec(sec){ const sign=sec<0?'-':'+'; const a=Math.abs(Math.round(sec)); return `${sign}${a}초`; }
 
+// 상세 입력 접기 블록 (간소화)
+function detailsBlock(children, openInit){
+  const wrap=document.createElement('div');
+  const btn=document.createElement('button'); btn.type='button'; btn.className='details-toggle';
+  const panel=document.createElement('div'); panel.className='details-panel'+(openInit?' open':'');
+  children.forEach(c=>panel.appendChild(c));
+  const lab = on => on ? '상세 입력 접기 ▴' : '상세 입력 (거리·페이스·체중 등) ▾';
+  btn.textContent = lab(openInit);
+  btn.addEventListener('click', ()=>{ btn.textContent = lab(panel.classList.toggle('open')); });
+  wrap.appendChild(btn); wrap.appendChild(panel);
+  return wrap;
+}
+function hasVal(...vals){ return vals.some(v => v!=null && v!==''); }
+
 function runInputs(d, s){
   const box=document.createDocumentFragment();
   box.appendChild(field('완료 체크', checkRow(s, d.id)));
+  box.appendChild(field('메모', memoEl(s)));
 
+  const det=[];
   // 거리 + 페이스
   const row=document.createElement('div'); row.className='row2';
   const dEl=textInput(s,'dist','예: 5.2','number');
@@ -691,7 +758,7 @@ function runInputs(d, s){
   const paceField=field('실제 평균 페이스 (m:ss)', pEl);
   const paceDiff=document.createElement('div'); paceDiff.className='diff'; paceField.appendChild(paceDiff);
   row.appendChild(distField); row.appendChild(paceField);
-  box.appendChild(row);
+  det.push(row);
 
   function updDist(){
     const plan=d.session.dist; const act=parseFloat(s.dist);
@@ -715,9 +782,10 @@ function runInputs(d, s){
   dEl.addEventListener('input', updDist); pEl.addEventListener('input', updPace);
   updDist(); updPace();
 
-  box.appendChild(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
-  box.appendChild(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
-  box.appendChild(field('메모', memoEl(s)));
+  det.push(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  det.push(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
+  det.push(weightField(d, s));
+  box.appendChild(detailsBlock(det, hasVal(s.dist, s.pace, s.cond, s.rpe, s.weight)));
   return box;
 }
 
@@ -734,20 +802,40 @@ function futsalInputs(d, s){
   });
   wrap.appendChild(b);
   box.appendChild(field('완료 체크', wrap));
-  box.appendChild(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
-  box.appendChild(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
   box.appendChild(field('메모', memoEl(s)));
+
+  const det=[];
+  det.push(field('컨디션 (다리 상태) 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  det.push(field('RPE (체감 강도) 1~10', scale(s,'rpe',10,'rpe','매우 쉬움','최대치')));
+  det.push(weightField(d, s));
+  box.appendChild(detailsBlock(det, hasVal(s.cond, s.rpe, s.weight)));
   return box;
 }
 
 function restInputs(d, s){
   const box=document.createDocumentFragment();
+  // 쉼 확인 토글 (진행률 집계에는 미포함)
+  const wrap=document.createElement('div'); wrap.className='checks';
+  const b=document.createElement('div'); b.className='chk'+(s.rested?' on':''); b.style.flex='1';
+  b.innerHTML=`<span class="box">${s.rested?'✔':''}</span>잘 쉬었음`;
+  b.addEventListener('click', ()=>{
+    s.rested=!s.rested; b.classList.toggle('on'); b.querySelector('.box').textContent=s.rested?'✔':'';
+    save();
+    const card=b.closest('.day'); const m=card&&card.querySelector('.dcheck');
+    if(m){ m.classList.toggle('done', !!s.rested); m.textContent=s.rested?'✔':'○'; }
+  });
+  wrap.appendChild(b);
+  box.appendChild(field('쉼 확인', wrap));
+  box.appendChild(field('메모', memoEl(s)));
+
+  const det=[];
   const row=document.createElement('div'); row.className='row2';
   row.appendChild(field('안정시 심박수 (선택)', textInput(s,'hr','예: 52','number')));
   row.appendChild(field('수면 시간 (h)', textInput(s,'sleep','예: 7.5','number')));
-  box.appendChild(row);
-  box.appendChild(field('컨디션 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
-  box.appendChild(field('메모', memoEl(s)));
+  det.push(row);
+  det.push(field('컨디션 1~5', scale(s,'cond',5,'cond','나쁨','좋음')));
+  det.push(weightField(d, s));
+  box.appendChild(detailsBlock(det, hasVal(s.hr, s.sleep, s.cond, s.weight)));
   return box;
 }
 
@@ -796,6 +884,76 @@ $('#btnReset').addEventListener('click', ()=>{
     state={days:{}, futsal:{}}; save(); render(); toast('초기화했습니다');
   }
 });
+
+/* ---------- 진행 탭 ---------- */
+function progRow(d){
+  const s = state.days[d.id] || {};
+  const tag = tagFor(d);
+  const done = isDone(d);
+  const goalParts=[];
+  if(d.session.dist) goalParts.push(`${d.session.dist}km`);
+  if(d.kind==='futsal') goalParts.push('2시간');
+  if(d.session.paceTxt) goalParts.push(d.session.paceTxt);
+  const tw = targetWeight(d.id);
+  if(tw!=null) goalParts.push(`목표체중 ${tw.toFixed(1)}kg`);
+  const goal = goalParts.join(' · ') || d.session.label;
+  const actParts=[];
+  if(s.dist) actParts.push(`${s.dist}km`);
+  if(s.pace) actParts.push(s.pace);
+  if(s.weight) actParts.push(`체중 ${s.weight}kg`);
+  if(s.rpe) actParts.push(`RPE ${s.rpe}`);
+  const act = actParts.length ? actParts.join(' · ') : '기록 없음';
+  const div=document.createElement('div');
+  div.className='prow'+(done?' done':'');
+  div.innerHTML = `
+    <div class="prow-head">
+      <span class="ddate">${mdLabel(d.dt)}<span class="dow"> ${DOW[d.dow]}</span></span>
+      <span class="tag ${tag.cls}">${tag.txt}</span>
+      <span class="prow-name">${d.session.label}</span>
+      <span class="dcheck ${done?'done':''}">${done?'✔':'○'}</span>
+    </div>
+    <div class="prow-line"><span class="pl-k">목표</span><span>${goal}</span></div>
+    <div class="prow-line"><span class="pl-k">실제</span><span>${act}</span></div>`;
+  return div;
+}
+
+function renderProgress(){
+  const host = $('#view-progress');
+  if(!ALL.length) ALL = buildDays();
+  const {done,total} = countDone(ALL);
+  const pct = total ? Math.round(done/total*100) : 0;
+  host.innerHTML='';
+  const sum=document.createElement('div'); sum.className='prog-summary';
+  sum.textContent = `전체 진행 ${done} / ${total} 세션 완료 · ${pct}%`;
+  host.appendChild(sum);
+
+  const groups = [{n:0, color:'#6b7280', label:'적응 주말'}]
+    .concat(WEEKS.map(w=>({n:w.n, color:w.color, label:w.phase})));
+  for(const g of groups){
+    const days = ALL.filter(d=>d.wn===g.n && d.counts); // 집계 대상 세션만
+    if(!days.length) continue;
+    const gd = countDone(days);
+    const start=days[0].dt, end=days[days.length-1].dt;
+    const pg=document.createElement('div'); pg.className='pgroup';
+    pg.innerHTML = `<div class="pgroup-head">
+      <span class="wbadge" style="background:${g.color}">W${g.n}</span>
+      <span class="pg-range">${mdLabel(start)} ~ ${mdLabel(end)} · ${g.label} · 완료 ${gd.done}/${gd.total}</span>
+    </div>`;
+    for(const d of days) pg.appendChild(progRow(d));
+    host.appendChild(pg);
+  }
+}
+
+function showView(v){
+  const log = v==='log';
+  $('#view-log').style.display = log ? '' : 'none';
+  $('#view-progress').style.display = log ? 'none' : '';
+  $('#tabLog').classList.toggle('active', log);
+  $('#tabProg').classList.toggle('active', !log);
+  if(!log) renderProgress();
+}
+$('#tabLog').addEventListener('click', ()=>showView('log'));
+$('#tabProg').addEventListener('click', ()=>showView('progress'));
 
 render();
 </script>
