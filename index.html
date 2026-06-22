@@ -384,10 +384,46 @@ const RACE_DATE = '2026-09-12';
 const DOW = ['월','화','수','목','금','토','일'];
 const STORE_KEY = 'runlog10k_v1';
 
+/* ---------- 시드: 이미 일어난 훈련 로그 (2026-05-30 ~ 06-21) ----------
+   localStorage가 비어 있을 때만 주입. 기존 입력이 있으면 절대 덮어쓰지 않음.
+   futsal: 실제 진행 요일(6/4·6/11 목, 6/17 수)로 역산. */
+const SEED = {
+  days: {
+    "2026-05-30": { cMain:true, dist:"5", pace:"6:00", cond:4, rpe:8, weight:"80.2" },
+    "2026-05-31": { rested:true },
+    "2026-06-01": { cMain:true, dist:"5", pace:"5:54", cond:2, rpe:8, weight:"79.9" },
+    "2026-06-02": { rested:true },
+    "2026-06-03": { rested:true },
+    "2026-06-04": { cMain:true },
+    "2026-06-05": { rested:true },
+    "2026-06-06": { cMain:true, dist:"8", pace:"5:56", cond:3, rpe:7, weight:"80" },
+    "2026-06-07": { rested:true },
+    "2026-06-08": { cMain:true, dist:"6", pace:"5:52", cond:2, rpe:8, weight:"80" },
+    "2026-06-09": { rested:true },
+    "2026-06-10": { rested:true },
+    "2026-06-11": { cMain:true },
+    "2026-06-12": { rested:true },
+    "2026-06-13": { cMain:true, dist:"9", pace:"6:27", cond:2, rpe:9, weight:"80" },
+    "2026-06-14": { rested:true },
+    "2026-06-15": { cMain:true, dist:"7", pace:"5:51", cond:3, rpe:7 },
+    "2026-06-16": { rested:true },
+    "2026-06-17": { cMain:true },
+    "2026-06-18": { rested:true },
+    "2026-06-19": { rested:true },
+    "2026-06-20": { cMain:true, dist:"10", pace:"6:06", cond:2, rpe:9, weight:"80" },
+    "2026-06-21": { rested:true }
+  },
+  futsal: { "1":"목", "2":"목", "3":"수" }
+};
+
 /* ---------- 상태 ---------- */
 let state = load();
 function load(){
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {days:{}, futsal:{}}; }
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw) return JSON.parse(raw);            // 기존 입력 우선 — 덮어쓰지 않음
+    return JSON.parse(JSON.stringify(SEED));   // 첫 방문(빈 저장소)에만 시드 주입
+  }
   catch(e){ return {days:{}, futsal:{}}; }
 }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
