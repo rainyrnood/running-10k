@@ -8,4 +8,4 @@
 데이터는 브라우저 localStorage에만 저장되며, 백업은 JSON 내보내기/가져오기로 합니다.
 
 ## GitHub Pages
-`https://skyinsejong.github.io/running-10k/`
+`https://rainyrnood.github.io/running-10k/`
